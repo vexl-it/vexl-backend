@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet author="David Tilser" id="CREATE_TABLE_PUSH" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="push" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createTable tableName="push" schemaName="public">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_Push"/>
+            </column>
+            <column name="group_uuid" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="firebase_token" type="varchar []">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="push" indexName="a757cbd855c64b2f9934_ix">
+            <column name="group_uuid"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

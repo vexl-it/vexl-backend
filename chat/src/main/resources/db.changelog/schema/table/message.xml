@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet id="add_column_type" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="message"/>
+                <not>
+                    <columnExists tableName="message" columnName="type"/>
+                </not>
+            </and>
+        </preConditions>
+        <addColumn tableName="message">
+            <column name="type" type="varchar"/>
+        </addColumn>
+        <update tableName="message">
+            <column name="type" valueComputed="MESSAGE"/>
+            <where>type IS NULL</where>
+        </update>
+        <addNotNullConstraint tableName="message" columnName="type"/>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet author="David Tilser" id="create_index_sender_public">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="message" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="message" indexName="5834a3584c634d0fab53_ix">
+            <column name="sender_public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_message_table" author="David Tilser" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="message"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="message">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_Message"/>
+            </column>
+            <column name="inbox_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sender_public_key" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pulled" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="message" indexName="5834a3584c634d0fab53_ix">
+            <column name="sender_public_key"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

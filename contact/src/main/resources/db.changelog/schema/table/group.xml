@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet author="David Tilser" id="create_indexes_uuid_expiration_at">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="group" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="group" indexName="086cc4a8540b4d579438_ix">
+            <column name="uuid"/>
+        </createIndex>
+        <createIndex tableName="group" indexName="88c6403cdcd7415d9c8c_ix">
+            <column name="expiration_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet author="David Tilser" id="add_qr_code_url_column">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="group" schemaName="public"/>
+        </preConditions>
+
+        <addColumn tableName="group">
+            <column name="qr_code_url" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet author="David Tilser" id="CREATE_TABLE_GROUP" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="group" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createTable tableName="group" schemaName="public">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_Group"/>
+            </column>
+            <column name="uuid" type="varchar(1500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(1500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="logo_url" type="varchar(1500)"/>
+            <column name="qr_code_url" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expiration_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="closure_at" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="group" indexName="086cc4a8540b4d579438_ix">
+            <column name="uuid"/>
+        </createIndex>
+        <createIndex tableName="group" indexName="88c6403cdcd7415d9c8c_ix">
+            <column name="expiration_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

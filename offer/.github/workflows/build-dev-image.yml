@@ -1,0 +1,62 @@
+name: "[Build] dev offer2-ms image"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-dev-offer2-ms:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: arn:aws:iam::570620554963:role/github_actions_ecr_vexl
+          role-session-name: GithubActionsCloudInfrastructure
+          aws-region: eu-west-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build dev offer2-ms-ms java
+        run: mvn package
+
+      - name: Build and push dev offer2-ms image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            CI_PROJECT_NAME=${{ github.repository }}
+            CI_COMMIT_SHORT_SHA=${{ github.sha }}
+            KUBE_DOMAIN=vexl.it
+            PROFILE=dev
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/offer2-ms:dev
+            ghcr.io/${{ github.repository_owner }}/offer2-ms:dev-${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/offer2-ms:dev
+            ${{ steps.login-ecr.outputs.registry }}/offer2-ms:dev-${{ github.sha }}

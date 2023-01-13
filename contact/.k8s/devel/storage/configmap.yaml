@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {
+    }
+    http {
+      server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+
+              # Set nginx to serve files from the shared volume!
+              root /var/www/static;
+              server_name _;
+
+              index index.php;
+
+              location / {
+                include  /etc/nginx/mime.types;
+              }
+            }
+    }

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet author="David Tilser" id="create_indexes_verificaton_code_public_key">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="users" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="user_verification" indexName="7b3205d35731428c8ff0_ix">
+            <column name="verification_code"/>
+        </createIndex>
+        <createIndex tableName="user_verification" indexName="6d6d93381c6f4dc58dc1_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_user_verification_table" author="David Tilser" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="user_verification"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="user_verification">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_UserVerification"/>
+            </column>
+            <column name="verification_code" type="varchar"/>
+            <column name="phone_number" type="varchar"/>
+            <column name="public_key" type="varchar"/>
+            <column name="expiration_at" type="timestamptz"/>
+            <column name="challenge" type="varchar"/>
+            <column name="phone_verified" type="boolean" defaultValue="false"/>
+            <column name="user_id" type="bigint"/>
+        </createTable>
+
+        <createIndex tableName="user_verification" indexName="7b3205d35731428c8ff0_ix">
+            <column name="verification_code"/>
+        </createIndex>
+        <createIndex tableName="user_verification" indexName="6d6d93381c6f4dc58dc1_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="add_verify_sid_instead_of_verification_code" author="davenov">
+        <addColumn tableName="user_verification">
+            <column name="verification_sid" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

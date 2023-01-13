@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: vexl-contact-ms-api-production-tls
+spec:
+  secretName: vexl-contact-ms-api-production-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: contact.vexl.it
+  dnsNames:
+    - contact.vexl.it

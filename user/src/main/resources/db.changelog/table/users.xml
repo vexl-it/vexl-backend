@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet author="David Tilser" id="create_indexes_username_public_key">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="users" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="users" indexName="086cc4a8540b4d579438_ix">
+            <column name="username"/>
+        </createIndex>
+        <createIndex tableName="users" indexName="88c6403cdcd7415d9c8c_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet author="David Tilser" id="drop_username_avatar_colums">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="users" schemaName="public"/>
+        </preConditions>
+
+        <dropColumn tableName="users" columnName="avatar"/>
+        <dropColumn tableName="users" columnName="username"/>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_users_table" author="David Tilser" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="users">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_Users"/>
+            </column>
+            <column name="public_key" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="users" indexName="88c6403cdcd7415d9c8c_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

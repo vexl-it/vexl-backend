@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet id="add_column_expiration" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+                <not>
+                    <columnExists tableName="offer_private" columnName="expiration"/>
+                </not>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="expiration" type="int8"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet id="create_index_offer_id" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <createIndex tableName="offer_public" indexName="106ec2a9167f4c6ea801_ix">
+            <column name="offer_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V4 ################################# -->
+    <changeSet id="add_admin_id_column" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="admin_id" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V5 ################################# -->
+    <changeSet id="add_offer_type_column" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="offer_type" type="VARCHAR"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V6 ################################# -->
+    <changeSet id="add_report_column" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="report" type="int" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V7 ################################# -->
+    <changeSet id="add_payload_public" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="payload_public" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V8 ################################# -->
+    <changeSet id="create_index_admin_id" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <createIndex tableName="offer_public" indexName="c2f312ff936f491d8be3_ui">
+            <column name="admin_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V9 ################################# -->
+    <changeSet id="truncate_offer_public" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <delete schemaName="public" tableName="offer_public"/>
+    </changeSet>
+
+    <!-- ################################ V10 ################################# -->
+    <changeSet id="add_refreshed_at_column_and_drop_expiration" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_public" schemaName="public">
+            <column name="refreshed_at" type="date"/>
+        </addColumn>
+        <sql>
+            update offer_public set refreshed_at = CURRENT_DATE;
+        </sql>
+        <addNotNullConstraint tableName="offer_public" columnName="refreshed_at"/>
+        <modifyDataType tableName="offer_public" columnName="created_at" newDataType="date"/>
+        <modifyDataType tableName="offer_public" columnName="modified_at" newDataType="date"/>
+        <dropColumn tableName="offer_public" columnName="expiration"/>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet author="David Tilser" id="CREATE_TABLE_OFFER_PUBLIC" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="offer_public" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createTable tableName="offer_public" schemaName="public">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK__OFFER_PUBLIC__C7D0F6572656BF34"/>
+            </column>
+            <column name="admin_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="offer_id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="offer_type" type="VARCHAR"/>
+            <column name="report" type="int" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refreshed_at" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload_public" type="varchar"/>
+        </createTable>
+
+        <createIndex tableName="offer_public" indexName="106ec2a9167f4c6ea801_ix">
+            <column name="offer_id"/>
+        </createIndex>
+        <createIndex tableName="offer_public" indexName="c2f312ff936f491d8be3_ui">
+            <column name="admin_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

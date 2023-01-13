@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appplication-storage-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: cdn
+  template:
+    metadata:
+      labels:
+        component: cdn
+    spec:
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-config
+            defaultMode: 420
+        - name: static-files
+          persistentVolumeClaim:
+            claimName: vexl-data
+      containers:
+        - name: nginx
+          image: nginx:1.14
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 50m
+              memory: 50Mi
+            requests:
+              cpu: 50m
+              memory: 50Mi
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: static-files
+              mountPath: /var/www/static

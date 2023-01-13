@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: vexl-contact-ms-api-staging-tls
+spec:
+  secretName: vexl-contact-ms-api-staging-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: contact.vexl.staging.cleevio.io
+  dnsNames:
+    - contact.vexl.staging.cleevio.io

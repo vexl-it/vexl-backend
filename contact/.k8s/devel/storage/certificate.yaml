@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: vexl-contact-devel-storage-service-tls
+spec:
+  secretName: vexl-contact-devel-storage-service-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: cdn.contact.vexl.devel.cleevio.io
+  dnsNames:
+    - cdn.contact.vexl.devel.cleevio.io

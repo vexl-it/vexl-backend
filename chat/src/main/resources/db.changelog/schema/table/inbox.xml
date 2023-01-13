@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet id="drop_not_null_constraint" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="inbox"/>
+                <columnExists tableName="inbox" columnName="token"/>
+            </and>
+        </preConditions>
+        <dropNotNullConstraint tableName="inbox" columnName="token"/>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet author="David Tilser" id="create_index_public_key">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="inbox" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="inbox" indexName="a757cbd855c64b2f9934_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V4 ################################# -->
+    <changeSet author="David Tilser" id="add_column_platform">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="inbox" />
+        </preConditions>
+
+        <addColumn tableName="inbox" >
+            <column name="platform" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_inbox_table" author="David Tilser" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="inbox"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="inbox">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_Inbox"/>
+            </column>
+            <column name="public_key" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="token" type="varchar"/>
+            <column name="platform" type="varchar"/>
+        </createTable>
+
+        <createIndex tableName="inbox" indexName="a757cbd855c64b2f9934_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

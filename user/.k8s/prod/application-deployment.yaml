@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-ms-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: user-ms
+  template:
+    metadata:
+      labels:
+        component: user-ms
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: static-files
+          persistentVolumeClaim:
+            claimName: vexl-data
+      containers:
+        - name: user-ms
+          imagePullPolicy: Always
+          image: gitlab.cleevio.cz:4567/backend/vexl/vexl-user-ms/production:latest
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "1000m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+          volumeMounts:
+            - mountPath: "/var/www/static"
+              name: static-files
+          readinessProbe:
+            httpGet:
+              port: 8282
+              path: /actuator/health
+            initialDelaySeconds: 120
+            timeoutSeconds: 20
+            periodSeconds: 5
+            failureThreshold: 10
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  key: spring.datasource.url
+                  name: spring-profile-user-ms
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: spring.datasource.username
+                  name: spring-profile-user-ms
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: spring.datasource.password
+                  name: spring-profile-user-ms
+            - name: SIGNATURE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: secret.signature-public-key
+                  name: spring-profile-user-ms
+            - name: SIGNATURE_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: secret.signature-private-key
+                  name: spring-profile-user-ms
+            - name: HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: secret.hmac-key
+                  name: spring-profile-user-ms
+            - name: AES_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: secret.aes-key
+                  name: spring-profile-user-ms
+            - name: CREDENTIAL_PHONES
+              valueFrom:
+                secretKeyRef:
+                  key: credential.phones
+                  name: spring-profile-user-ms
+            - name: CREDENTIAL_CODE
+              valueFrom:
+                secretKeyRef:
+                  key: credential.code
+                  name: spring-profile-user-ms
+            - name: TWILIO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: twilio.token
+                  name: spring-profile-user-ms
+            - name: TWILIO_PHONE
+              valueFrom:
+                secretKeyRef:
+                  key: twilio.phone
+                  name: spring-profile-user-ms
+            - name: TWILIO_SID
+              valueFrom:
+                secretKeyRef:
+                  key: twilio.sid
+                  name: spring-profile-user-ms
+            - name: SENTRY_DNS
+              valueFrom:
+                secretKeyRef:
+                  key: sentry.dsn
+                  name: spring-profile-user-ms

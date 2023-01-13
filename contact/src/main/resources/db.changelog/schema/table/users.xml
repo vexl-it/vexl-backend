@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet author="David Tilser" id="create_indexes_public_key_hash">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="users" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="users" indexName="fa8fa5318f0b4b298baa_ix">
+            <column name="public_key"/>
+        </createIndex>
+        <createIndex tableName="users" indexName="5834a3584c634d0fab53_ix">
+            <column name="hash"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet author="David Tilser" id="add_firebase_token_column">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="users" schemaName="public"/>
+        </preConditions>
+
+        <addColumn tableName="users" schemaName="public">
+            <column name="firebase_token" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V4 ################################# -->
+    <changeSet author="David Tilser" id="add_refreshed_at_and_platform_column_and_create_firebase_token_index">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="users" schemaName="public"/>
+        </preConditions>
+
+        <addColumn tableName="users" schemaName="public">
+            <column name="refreshed_at" type="date"/>
+            <column name="platform" type="text"/>
+        </addColumn>
+
+        <createIndex tableName="users" indexName="a90098b876d449c8bb4c_ix">
+            <column name="firebase_token"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet author="David Tilser" id="CREATE_TABLE_USERS" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="users" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createTable tableName="users" schemaName="public">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_USERS"/>
+            </column>
+            <column name="public_key" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hash" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="firebase_token" type="varchar"/>
+            <column name="refreshed_at" type="date"/>
+            <column name="platform" type="text"/>
+        </createTable>
+
+        <createIndex tableName="users" indexName="fa8fa5318f0b4b298baa_ix">
+            <column name="public_key"/>
+        </createIndex>
+        <createIndex tableName="users" indexName="5834a3584c634d0fab53_ix">
+            <column name="hash"/>
+        </createIndex>
+        <createIndex tableName="users" indexName="a90098b876d449c8bb4c_ix">
+            <column name="firebase_token"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

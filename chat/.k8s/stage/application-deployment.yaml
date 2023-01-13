@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appplication-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: application
+  template:
+    metadata:
+      labels:
+        component: application
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: application
+          imagePullPolicy: Always
+          image: gitlab.cleevio.cz:4567/backend/vexl/vexl-chat-ms/staging:latest
+          readinessProbe:
+            httpGet:
+              port: 8282
+              path: /actuator/health
+            initialDelaySeconds: 120
+            timeoutSeconds: 20
+            periodSeconds: 5
+            failureThreshold: 10
+          env:
+            - name: FIREBASE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: secret.firebase-client-id
+                  name: spring-profile-chat-ms
+            - name: FIREBASE_CLIENT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  key: secret.firebase-client-email
+                  name: spring-profile-chat-ms
+            - name: FIREBASE_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: secret.firebase-private-key
+                  name: spring-profile-chat-ms
+            - name: FIREBASE_PRIVATE_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  key: secret.firebase-private-key-id
+                  name: spring-profile-chat-ms
+            - name: FIREBASE_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: secret.firebase-project-id
+                  name: spring-profile-chat-ms
+            - name: FIREBASE_TOKEN_URI
+              valueFrom:
+                secretKeyRef:
+                  key: secret.firebase-token-uri
+                  name: spring-profile-chat-ms
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  key: spring.datasource.url
+                  name: spring-profile-chat-ms
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: spring.datasource.username
+                  name: spring-profile-chat-ms
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: spring.datasource.password
+                  name: spring-profile-chat-ms
+            - name: SENTRY_DNS
+              valueFrom:
+                secretKeyRef:
+                  key: sentry.dsn
+                  name: spring-profile-chat-ms

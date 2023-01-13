@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet author="David Tilser" id="create_index_public_key_created_at">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="challenge" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="challenge" indexName="086cc4a8540b4d579438_ix">
+            <column name="public_key"/>
+        </createIndex>
+        <createIndex tableName="challenge" indexName="88c6403cdcd7415d9c8c_ix">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_challenge_table" author="David Tilser" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="challenge"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="challenge">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_Challenge"/>
+            </column>
+            <column name="challenge" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="public_key" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid" type="boolean" defaultValue="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="challenge" indexName="086cc4a8540b4d579438_ix">
+            <column name="public_key"/>
+        </createIndex>
+        <createIndex tableName="challenge" indexName="88c6403cdcd7415d9c8c_ix">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: vexl-staging-storage-service-tls
+spec:
+  secretName: vexl-staging-storage-service-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: cdn.user.vexl.staging.cleevio.io
+  dnsNames:
+    - cdn.user.vexl.staging.cleevio.io

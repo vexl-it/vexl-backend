@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="FK_OFFER_PUBLIC" author="David Tilser">
+        <addForeignKeyConstraint baseTableName="offer_private"
+                                 baseColumnNames="offer_id"
+                                 constraintName="FK_OFFER_ID"
+                                 referencedTableName="offer_public"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

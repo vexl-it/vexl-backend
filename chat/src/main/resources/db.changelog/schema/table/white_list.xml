@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet author="David Tilser" id="create_index_public_key">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <tableExists tableName="white_list" schemaName="public"/>
+        </preConditions>
+
+        <createIndex tableName="white_list" indexName="fa8fa5318f0b4b298baa_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_white_list_table" author="David Tilser" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="white_list"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="white_list">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_WhiteList"/>
+            </column>
+            <column name="inbox_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="public_key" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="white_list" indexName="fa8fa5318f0b4b298baa_ix">
+            <column name="public_key"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet author="David Tilser" id="CREATE_V_CONTACT" runOnChange="true">
+        <createView fullDefinition="false" viewName="V_CONTACT" replaceIfExists="true">
+select
+	distinct x.id,
+	x.public_key,
+	x.my_public_key,
+	x.level
+from
+	(
+	select
+		uc.id,
+		u2.public_key,
+		u.public_key as my_public_key,
+		'FIRST' as level
+	from
+		users u2
+	join user_contact uc on
+		uc.hash_to = u2.hash
+	join users u on
+		u.hash = uc.hash_from
+union
+	select
+		uc3.id,
+		u4.public_key,
+		u.public_key as my_public_key,
+		'SECOND' as level
+	from
+		users u
+	join user_contact uc2 on
+		u.hash = uc2.hash_from
+	join user_contact uc3 on
+		uc2.hash_to = uc3.hash_to
+	join users u4 on
+		uc3.hash_from = u4.hash
+ ) x
+where
+	x.public_key is not null
+	and x.public_key != x.my_public_key</createView>
+    </changeSet>
+
+</databaseChangeLog>

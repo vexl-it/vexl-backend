@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: contact-ms-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: contact-ms
+  ports:
+    - port: 8080
+      targetPort: 8080

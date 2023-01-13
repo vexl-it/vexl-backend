@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: vexl-contact-ms-api-tls
+spec:
+  secretName: vexl-contact-ms-api-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: contact.vexl.devel.cleevio.io
+  dnsNames:
+    - contact.vexl.devel.cleevio.io

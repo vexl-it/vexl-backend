@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+    <!-- ##################################################################### -->
+    <!-- ################# TABLE CHANGES (FROM OLDER TO NEW) ################# -->
+    <!-- ##################################################################### -->
+
+    <!-- ################################ V2 ################################# -->
+    <changeSet id="add_columns_active_price_state_and_value_and_active" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+                <not>
+                    <columnExists tableName="offer_private" columnName="active_price_state"/>
+                    <columnExists tableName="offer_private" columnName="active_price_value"/>
+                    <columnExists tableName="offer_private" columnName="active"/>
+                </not>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="active_price_state" type="varchar"/>
+        </addColumn>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="active_price_value" type="varchar"/>
+        </addColumn>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="active" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V3 ################################# -->
+    <changeSet id="add_column_common_friends" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+                <not>
+                    <columnExists tableName="offer_private" columnName="common_friends"/>
+                </not>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="common_friends" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V4 ################################# -->
+    <changeSet id="drop_public_key_and_create_different_data_type" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+                <columnExists tableName="offer_private" columnName="user_public_key"/>
+            </and>
+        </preConditions>
+        <dropColumn tableName="offer_private" columnName="user_public_key"/>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="user_public_key" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V5 ################################# -->
+    <changeSet id="add_group_column" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+                <not>
+                    <columnExists tableName="offer_private" columnName="group"/>
+                </not>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="group_uuid" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ 6 ################################# -->
+    <changeSet id="add_currency_column" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+                <not>
+                    <columnExists tableName="offer_private" columnName="currency"/>
+                </not>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="currency" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V7 ################################# -->
+    <changeSet id="create_indexes_user_public_key" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+            </and>
+        </preConditions>
+        <createIndex tableName="offer_private" indexName="b39b5689c5d04cf5b350_ix">
+            <column name="user_public_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ################################ V8 ################################# -->
+    <changeSet id="add_active_price_currency" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="active_price_currency" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ################################ V9 ################################# -->
+    <changeSet id="add_payload_private_column_and_drop_not_null_constrains_on_other_columns"
+               author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+            </and>
+        </preConditions>
+        <addColumn tableName="offer_private" schemaName="public">
+            <column name="payload_private" type="varchar"/>
+        </addColumn>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="location"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="offer_public_key"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="offer_description"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="amount_bottom_limit"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="amount_top_limit"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="fee_state"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="fee_amount"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="location_state"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="currency"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="payment_method"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="payment_method"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="btc_network"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="friend_level"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="offer_type"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="active_price_state"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="active_price_value"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="active_price_currency"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="active"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="common_friends"/>
+        <dropNotNullConstraint tableName="offer_private" schemaName="public" columnName="group_uuid"/>
+    </changeSet>
+
+    <!-- ################################ V10 ################################# -->
+    <changeSet id="truncate_offer_private_and_drop_deprecated_columns" author="David Tilser">
+        <preConditions onSqlOutput="TEST" onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="offer_private" schemaName="public"/>
+            </and>
+        </preConditions>
+        <delete schemaName="public" tableName="offer_private"/>
+        <dropColumn tableName="offer_private" columnName="location"/>
+        <dropColumn tableName="offer_private" columnName="offer_public_key"/>
+        <dropColumn tableName="offer_private" columnName="offer_description"/>
+        <dropColumn tableName="offer_private" columnName="amount_bottom_limit"/>
+        <dropColumn tableName="offer_private" columnName="amount_top_limit"/>
+        <dropColumn tableName="offer_private" columnName="fee_state"/>
+        <dropColumn tableName="offer_private" columnName="fee_amount"/>
+        <dropColumn tableName="offer_private" columnName="location_state"/>
+        <dropColumn tableName="offer_private" columnName="currency"/>
+        <dropColumn tableName="offer_private" columnName="payment_method"/>
+        <dropColumn tableName="offer_private" columnName="btc_network"/>
+        <dropColumn tableName="offer_private" columnName="friend_level"/>
+        <dropColumn tableName="offer_private" columnName="offer_type"/>
+        <dropColumn tableName="offer_private" columnName="active_price_state"/>
+        <dropColumn tableName="offer_private" columnName="active_price_value"/>
+        <dropColumn tableName="offer_private" columnName="active_price_currency"/>
+        <dropColumn tableName="offer_private" columnName="active"/>
+        <dropColumn tableName="offer_private" columnName="common_friends"/>
+        <dropColumn tableName="offer_private" columnName="group_uuid"/>
+    </changeSet>
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet author="David Tilser" id="CREATE_TABLE_OFFER_PRIVATE" runOnChange="true">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="offer_private" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createTable tableName="offer_private" schemaName="public">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK__OFFER_PRIVATE__C7D0F6572656BF34"/>
+            </column>
+            <column name="user_public_key" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="offer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload_private" type="varchar"/>
+        </createTable>
+
+        <createIndex tableName="offer_private" indexName="b39b5689c5d04cf5b350_ix">
+            <column name="user_public_key"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
