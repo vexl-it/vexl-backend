@@ -1,13 +1,16 @@
-name: "[Build] prod contact-ms image"
+name: "[Build] prod chat-ms image"
 
 on:
   push:
     branches:
       - main
+    paths:
+      - "chat/**"
+      - "common/**"
   workflow_dispatch:
 
 jobs:
-  build-prod-contact-ms:
+  build-prod-chat-ms:
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -26,7 +29,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
-          cache: "maven"
+          cache: "gradle"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
@@ -43,14 +46,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build contact-ms java
-        run: mvn package -Dmaven.test.skip
 
-      - name: Build and push prod contact-ms image
+      - name: Build prod chat-ms-ms java
+        run: gradle chat:bootJar
+
+      - name: Build and push prod chat-ms image
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./chat
           platforms: linux/amd64
           push: true
           build-args: |
@@ -59,7 +62,7 @@ jobs:
             KUBE_DOMAIN=vexl.it
             PROFILE=prod
           tags: |
-            ghcr.io/${{ github.repository_owner }}/contact-ms:latest
-            ghcr.io/${{ github.repository_owner }}/contact-ms:${{ github.sha }}
-            ${{ steps.login-ecr.outputs.registry }}/contact-ms:latest
-            ${{ steps.login-ecr.outputs.registry }}/contact-ms:prod-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/chat-ms:latest
+            ghcr.io/${{ github.repository_owner }}/chat-ms:prod-${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/chat-ms:latest
+            ${{ steps.login-ecr.outputs.registry }}/chat-ms:prod-${{ github.sha }}

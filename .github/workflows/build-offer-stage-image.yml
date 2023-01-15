@@ -1,13 +1,10 @@
-name: "[Build] prod offer2-ms image"
+name: "[Build] stage offer2-ms image"
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  build-prod-offer2-ms:
+  build-stage-offer2-ms:
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -26,7 +23,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
-          cache: "maven"
+          cache: "gradle"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
@@ -43,23 +40,23 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build offer2-ms java
-        run: mvn package
 
-      - name: Build and push prod offer2-ms image
+      - name: Build stage offer2-ms-ms java
+        run: gradle offer:bootJar
+
+      - name: Build and push stage offer2-ms image
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./offer
           platforms: linux/amd64
           push: true
           build-args: |
             CI_PROJECT_NAME=${{ github.repository }}
             CI_COMMIT_SHORT_SHA=${{ github.sha }}
             KUBE_DOMAIN=vexl.it
-            PROFILE=prod
+            PROFILE=stage
           tags: |
-            ghcr.io/${{ github.repository_owner }}/offer2-ms:latest
-            ghcr.io/${{ github.repository_owner }}/offer2-ms:${{ github.sha }}
-            ${{ steps.login-ecr.outputs.registry }}/offer2-ms:latest
-            ${{ steps.login-ecr.outputs.registry }}/offer2-ms:prod-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/offer2-ms:stage
+            ghcr.io/${{ github.repository_owner }}/offer2-ms:stage-${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/offer2-ms:stage
+            ${{ steps.login-ecr.outputs.registry }}/offer2-ms:stage-${{ github.sha }}

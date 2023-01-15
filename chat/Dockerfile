@@ -6,7 +6,7 @@ ARG KUBE_DOMAIN
 ARG PROFILE
 
 VOLUME /tmp
-ADD ./target/vexl-0.0.1-SNAPSHOT.jar ./application.jar
+ADD ./build/libs/application.jar application.jar
 
 RUN echo "\
 java \
