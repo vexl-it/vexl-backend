@@ -1,6 +1,6 @@
 package com.cleevio.vexl.module.facebook.service;
 
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.module.contact.exception.InvalidFacebookToken;
 import com.cleevio.vexl.module.contact.service.ContactService;
 import com.cleevio.vexl.module.facebook.dto.FacebookUser;

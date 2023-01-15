@@ -1,7 +1,7 @@
 package com.cleevio.vexl.common.convertor;
 
 import com.cleevio.vexl.common.config.SecretKeyConfig;
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;

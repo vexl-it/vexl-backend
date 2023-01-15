@@ -1,4 +1,5 @@
-package com.cleevio.vexl.common.cryptolib;
+package it.vexl.common.crypto;
+
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.macs.HMac;
@@ -225,3 +226,4 @@ public class CryptoLibrary {
         return keyFactoryPbkdf2WithHmacSHA256.generateSecret(spec).getEncoded();
     }
 }
+

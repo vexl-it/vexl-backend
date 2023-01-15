@@ -1,6 +1,6 @@
 package com.cleevio.vexl.common.service;
 
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import org.springframework.stereotype.Service;
 
 @Service

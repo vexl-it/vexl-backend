@@ -54,7 +54,6 @@ subprojects {
         implementation("org.springframework.boot:spring-boot-starter")
         implementation("org.springframework.boot:spring-boot-starter-web")
         implementation("org.springframework.boot:spring-boot-configuration-processor")
-        implementation("org.bouncycastle:bcpg-jdk15to18:1.72.3")
         implementation("org.springframework.boot:spring-boot-starter-log4j2")
         implementation("org.springframework.boot:spring-boot-starter-security")
         implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -65,6 +64,10 @@ subprojects {
         implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
         implementation("org.liquibase:liquibase-core:4.15.0")
         implementation("org.apache.pdfbox:pdfbox:2.0.26")
+
+        if(name != "crypto") {
+            implementation(project(":common:crypto"))
+        }
 
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.springframework.security:spring-security-test:5.7.1")

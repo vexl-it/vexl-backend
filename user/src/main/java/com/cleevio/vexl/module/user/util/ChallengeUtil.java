@@ -1,6 +1,6 @@
 package com.cleevio.vexl.module.user.util;
 
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.module.user.dto.UserData;
 import com.cleevio.vexl.module.user.exception.VerificationExpiredException;
 import lombok.AccessLevel;

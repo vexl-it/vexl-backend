@@ -5,5 +5,6 @@ include(
     "chat",
     "contact",
     "offer",
-    "user"
+    "user",
+    "common:crypto"
 )

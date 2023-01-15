@@ -1,7 +1,7 @@
 package com.cleevio.vexl.module.inbox.service;
 
 import com.cleevio.vexl.common.IntegrationTest;
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.module.challenge.dto.request.CreateChallengeRequest;
 import com.cleevio.vexl.module.challenge.exception.InvalidChallengeSignature;
 import com.cleevio.vexl.module.challenge.service.ChallengeService;

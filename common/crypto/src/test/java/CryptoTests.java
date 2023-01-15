@@ -1,13 +1,5 @@
-package com.cleevio.vexl.common;
-
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Array;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.Arrays;
-import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,7 +60,7 @@ public class CryptoTests {
                 "MDwCHDEcmJ449RWPxQMz5O3BcoQb3D261wVR7SQTY9kCHFtXATCV/0mQB0dmwK3TIm7Xy6DWiLIgGkVXY/c=",
         };
 
-        for (String signature: signatures) {
+        for (String signature : signatures) {
             assertThat(CryptoLibrary.instance.ecdsaVerifyV2(publicKey2, data, signature)).isTrue();
         }
 
@@ -99,7 +91,7 @@ public class CryptoTests {
     @Test
     void testAesIgnoreTag() {
         String data = "asdfasdf this must be longer than long yes, sesakejaf lksdjlf kajs dlfkjalksd jflkasj dflkajskdlůfj aslkdjf klaůsjdfkl ajsdlkfj aklůsjdfk aůsjdf aklsdjf klajs dklfa";
-        String pass="asdfasdfa else aklsdj fklajskldfj klasjd klfj alksd jfklajs kldfj aklsjdflkajs kldfj alksjdf lkajslk djfklajsd kfkas jdfklaj skldfjakls jdflkaj slkdfjasl kdfjlkasjdf lkajsdf";
+        String pass = "asdfasdfa else aklsdj fklajskldfj klasjd klfj alksd jfklajs kldfj aklsjdflkajs kldfj alksjdf lkajslk djfklajsd kfkas jdfklaj skldfjakls jdflkaj slkdfjasl kdfjlkasjdf lkajsdf";
 
         String cipher = CryptoLibrary.instance.aesEncryptIgnoreTag(pass, data);
         assertThat(CryptoLibrary.instance.aesDecryptIgnoreTag(pass, cipher)).isEqualTo(data);

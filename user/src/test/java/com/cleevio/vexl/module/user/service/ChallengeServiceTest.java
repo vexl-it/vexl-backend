@@ -1,6 +1,6 @@
 package com.cleevio.vexl.module.user.service;
 
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.module.user.dto.UserData;
 import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.user.entity.UserVerification;

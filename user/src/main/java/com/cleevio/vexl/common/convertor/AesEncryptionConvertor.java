@@ -1,6 +1,6 @@
 package com.cleevio.vexl.common.convertor;
 
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.module.user.config.SecretKeyConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;

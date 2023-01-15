@@ -1,7 +1,7 @@
 package com.cleevio.vexl.common.service;
 
 import com.cleevio.vexl.common.config.SecretKeyConfig;
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.common.service.query.CheckSignatureValidityQuery;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;

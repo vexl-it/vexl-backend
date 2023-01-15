@@ -1,0 +1,3 @@
+dependencies {
+    implementation("org.bouncycastle:bcpg-jdk15to18:1.72.3")
+}

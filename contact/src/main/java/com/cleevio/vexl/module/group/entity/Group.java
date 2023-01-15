@@ -1,7 +1,7 @@
 package com.cleevio.vexl.module.group.entity;
 
 import com.cleevio.vexl.common.convertor.AesEncryptionConvertor;
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

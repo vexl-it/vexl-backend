@@ -1,7 +1,6 @@
 package com.cleevio.vexl.module.challenge.service;
 
 import com.cleevio.vexl.common.constant.ModuleLockNamespace;
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
 import com.cleevio.vexl.common.service.AdvisoryLockService;
 import com.cleevio.vexl.module.challenge.config.ChallengeConfig;
 import com.cleevio.vexl.module.challenge.constant.ChallengeAdvisoryLock;
@@ -12,6 +11,7 @@ import com.cleevio.vexl.module.challenge.exception.ChallengeCreateException;
 import com.cleevio.vexl.module.challenge.exception.ChallengeExpiredException;
 import com.cleevio.vexl.module.challenge.exception.InvalidChallengeSignature;
 import com.cleevio.vexl.module.challenge.service.query.VerifySignedChallengeQuery;
+import it.vexl.common.crypto.CryptoLibrary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

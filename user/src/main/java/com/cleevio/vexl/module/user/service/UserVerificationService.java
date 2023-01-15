@@ -1,7 +1,7 @@
 package com.cleevio.vexl.module.user.service;
 
 import com.cleevio.vexl.common.constant.ModuleLockNamespace;
-import com.cleevio.vexl.common.cryptolib.CryptoLibrary;
+import it.vexl.common.crypto.CryptoLibrary;
 import com.cleevio.vexl.common.integration.twilio.service.SmsService;
 import com.cleevio.vexl.common.service.AdvisoryLockService;
 import com.cleevio.vexl.common.util.PhoneUtils;
