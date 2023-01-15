@@ -36,7 +36,7 @@ class ChallengeServiceIT {
     private static final String PRIVATE_KEY_USER_B = CryptographyTestKeysUtil.PRIVATE_KEY_USER_B;
 
     @Test
-    void testSigningChallenge_shouldSignAndBeSuccessfullyVerified() {
+    public void testSigningChallenge_shouldSignAndBeSuccessfullyVerified() {
         final String challenge = this.challengeService.createChallenge(RequestCreatorTestUtil.createChallengeRequest(PUBLIC_KEY_USER_A));
         final String signature = CryptoLibrary.instance.ecdsaSignV1(PRIVATE_KEY_USER_A, challenge);
         final boolean signedChallengeValid = this.challengeService.isSignedChallengeValid(new VerifySignedChallengeQuery(PUBLIC_KEY_USER_A, new SignedChallenge(challenge, signature)), 1);
