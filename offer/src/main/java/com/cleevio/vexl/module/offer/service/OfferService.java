@@ -20,9 +20,12 @@ import com.cleevio.vexl.module.offer.exception.MissingOwnerPrivatePartException;
 import com.cleevio.vexl.module.offer.exception.OfferNotFoundException;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -57,10 +60,54 @@ public class OfferService {
     private final OfferPrivateRepository offerPrivateRepository;
     private final MessageDigest messageDigest;
     private final AdvisoryLockService advisoryLockService;
+
+    private final Counter offerPublicPartExpiredCounter;
+    private final Counter offerPrivatePartExpiredCounter;
+    private final Counter offerPublicPartDeletedCounter;
+    private final Counter offerPrivatePartDeletedCounter;
+
     @Value("${offer.expiration}")
     private final Integer expirationPeriod;
     private static final long ONE = 1;
     private static final int SIXTY_FOUR = 64;
+
+    @Autowired
+    public OfferService(
+            OfferPublicRepository offerPublicRepository,
+            OfferPrivateRepository offerPrivateRepository,
+            AdvisoryLockService advisoryLockService,
+            @Value("${offer.expiration}")
+            Integer expirationPeriod,
+            MeterRegistry registry
+    ) {
+        this.offerPublicRepository = offerPublicRepository;
+        this.offerPrivateRepository = offerPrivateRepository;
+        this.advisoryLockService = advisoryLockService;
+        this.expirationPeriod = expirationPeriod;
+
+        this.offerPublicPartExpiredCounter = Counter
+                .builder("analytics.offers.expiration.public_part")
+                .description("How many offers expired (public parts - for each owner)")
+                .register(registry);
+        this.offerPrivatePartExpiredCounter = Counter
+                .builder("analytics.offers.expiration.private_part")
+                .description("How many offers expired (private parts - for each contact)")
+                .register(registry);
+        this.offerPublicPartDeletedCounter = Counter
+                .builder("analytics.offers.deletion.public_part")
+                .description("How many offers was deleted (public parts - for each owner)")
+                .register(registry);
+        this.offerPrivatePartDeletedCounter = Counter
+                .builder("analytics.offers.deletion.private_part")
+                .description("How many offers was deleted (private parts - for each contact)")
+                .register(registry);
+
+        try {
+            this.messageDigest = MessageDigest.getInstance("SHA-256");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Creating private and public part of an offer from request.
@@ -134,11 +181,14 @@ public class OfferService {
     public void deleteOffers(List<String> adminIds) {
         if (adminIds.isEmpty()) return;
 
-        this.offerPrivateRepository.deleteAllPrivatePartsByAdminIds(adminIds);
+        long privatePartsDeleted = this.offerPrivateRepository.deleteAllPrivatePartsByAdminIds(adminIds);
         log.info("Deleted all private parts of an offer.");
 
-        this.offerPublicRepository.deleteByAdminIds(adminIds);
+        long publicPartsDeleted = this.offerPublicRepository.deleteByAdminIds(adminIds);
         log.info("Deleted public part of an offer.");
+
+        offerPrivatePartDeletedCounter.increment(privatePartsDeleted);
+        offerPublicPartDeletedCounter.increment(publicPartsDeleted);
     }
 
     @Transactional
@@ -193,8 +243,11 @@ public class OfferService {
 
             log.info("Deleting all offers older then [{}].", expiration);
 
-            this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
-            this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
+            long removedPrivateCount = this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
+            long removedPublicParsCount = this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
+
+            offerPublicPartExpiredCounter.increment(removedPublicParsCount);
+            offerPrivatePartExpiredCounter.increment(removedPrivateCount);
         } catch (Exception e) {
             log.error("Error while removing expired offers: " + e.getMessage(), e);
         }
@@ -203,7 +256,8 @@ public class OfferService {
     @Transactional
     public void deleteOfferByOfferIdAndPublicKey(@Valid DeletePrivatePartRequest request) {
         if (request.publicKeys().isEmpty() || request.adminIds().isEmpty()) return;
-        this.offerPrivateRepository.deletePrivatePartOfferByAdminIdsAndPublicKeys(request.adminIds(), request.publicKeys());
+        long privatePartsDeleted = this.offerPrivateRepository.deletePrivatePartOfferByAdminIdsAndPublicKeys(request.adminIds(), request.publicKeys());
+        offerPrivatePartDeletedCounter.increment(privatePartsDeleted);
     }
 
     @Transactional
@@ -337,13 +391,25 @@ public class OfferService {
         return statsDtos;
     }
 
+    @Transactional(readOnly = true)
+    public long retrieveActiveOffersCount(OfferType type) {
+        return offerPublicRepository.getActiveOffersCount(type);
+    }
+
+    @Transactional(readOnly = true)
+    public long retrieveAllTimeOffersCount() {
+        return offerPublicRepository.getAllTimeCount();
+    }
+
+
     private void removePrivatePartIfAlreadyExists(Set<String> publicKeys, String adminId) {
         if (this.offerPrivateRepository.existsByUserPublicKeysAndAdminId(publicKeys, adminId)) {
             log.warn("""
                     There is(are) already created private part(s) with the public key.
                     The private part(s) will be deleted and new will be created.
                     """);
-            this.offerPrivateRepository.deletePrivatePartOfferByAdminIdAndPublicKeys(adminId, publicKeys);
+            long privatePartsDeleted = this.offerPrivateRepository.deletePrivatePartOfferByAdminIdAndPublicKeys(adminId, publicKeys);
+            offerPrivatePartDeletedCounter.increment(privatePartsDeleted);
         }
     }
 

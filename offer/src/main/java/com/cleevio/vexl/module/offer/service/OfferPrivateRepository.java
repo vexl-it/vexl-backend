@@ -15,7 +15,7 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
 
     @Modifying
     @Query("delete from OfferPrivatePart p where p.offerPublicPart.id in (select o.id from OfferPublicPart o where o.adminId in :adminIds)")
-    void deleteAllPrivatePartsByAdminIds(List<String> adminIds);
+    long deleteAllPrivatePartsByAdminIds(List<String> adminIds);
 
     @Query("""
             select p from OfferPrivatePart p 
@@ -39,7 +39,7 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
                  delete from OfferPrivatePart p where 
                  exists (select pub from OfferPublicPart pub where pub = p.offerPublicPart and pub.refreshedAt < :expiration)
             """)
-    void deleteAllExpiredPrivateParts(LocalDate expiration);
+    long deleteAllExpiredPrivateParts(LocalDate expiration);
 
     @Query("""
             select p from OfferPrivatePart p 
@@ -49,11 +49,11 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
 
     @Modifying
     @Query("delete from OfferPrivatePart p where p.userPublicKey in (:publicKeys) and p.offerPublicPart.id in (select o.id from OfferPublicPart o where o.adminId in (:adminIds))")
-    void deletePrivatePartOfferByAdminIdsAndPublicKeys(List<String> adminIds, List<String> publicKeys);
+    long deletePrivatePartOfferByAdminIdsAndPublicKeys(List<String> adminIds, List<String> publicKeys);
 
     @Modifying
     @Query("delete from OfferPrivatePart p where p.userPublicKey in (:publicKeys) and p.offerPublicPart.id = (select o.id from OfferPublicPart o where o.adminId = :adminId)")
-    void deletePrivatePartOfferByAdminIdAndPublicKeys(String adminId, Set<String> publicKeys);
+    long deletePrivatePartOfferByAdminIdAndPublicKeys(String adminId, Set<String> publicKeys);
 
     @Query("select case when (count(p) > 0) then true else false end from OfferPrivatePart p where p.userPublicKey in :userPublicKey and p.offerPublicPart.adminId = :adminId")
     boolean existsByUserPublicKeysAndAdminId(Set<String> userPublicKey, String adminId);
