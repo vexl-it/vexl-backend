@@ -56,7 +56,7 @@ public class MessageController {
                 .description("Total number of messages")
                 .register(registry);
 
-        Gauge.builder("analytics.messages.count_total", messageService, MessageService::getNotPulledMessagesCount)
+        Gauge.builder("analytics.messages.count_not_pulled", messageService, MessageService::getNotPulledMessagesCount)
                 .description("Number of messages that users has not pulled")
                 .register(registry);
     }
