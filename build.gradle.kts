@@ -64,6 +64,7 @@ subprojects {
         implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
         implementation("org.liquibase:liquibase-core:4.15.0")
         implementation("org.apache.pdfbox:pdfbox:2.0.26")
+        implementation("io.micrometer:micrometer-registry-prometheus:1.10.3")
 
         if(name != "crypto") {
             implementation(project(":common:crypto"))
