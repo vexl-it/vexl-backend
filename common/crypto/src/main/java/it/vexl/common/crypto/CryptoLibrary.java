@@ -5,12 +5,16 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -18,7 +22,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-
 public class CryptoLibrary {
     public static final CryptoLibrary instance;
     private static final byte[] PBKD_SECRET = "vexlvexl".getBytes(StandardCharsets.UTF_8);
@@ -43,27 +46,12 @@ public class CryptoLibrary {
         keyFactoryPbkdf2WithHmacSHA1 = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1", "BC");
     }
 
-    private PublicKey base64ToPublicKey(String base64Key) throws InvalidKeySpecException {
-        byte[] keyBytes = Base64
-                .getDecoder()
-                .decode(
-                        new String(Base64.getDecoder().decode(base64Key))
-                                .replaceAll("-----(BEGIN|END).*", "")
-                                .replaceAll("\n", "")
-                );
-
+    private PublicKey base64ToPublicKey(String base64Key) throws InvalidKeySpecException, IOException {
+        byte [] keyBytes = getPemContent(base64Key);
         return keyFactory.generatePublic(new X509EncodedKeySpec(keyBytes));
     }
-
-    private PrivateKey base64ToPrivateKey(String base64Key) throws InvalidKeySpecException {
-        byte[] keyBytes = Base64
-                .getDecoder()
-                .decode(
-                        new String(Base64.getDecoder().decode(base64Key))
-                                .replaceAll("-----(BEGIN|END).*", "")
-                                .replaceAll("\n", "")
-                );
-
+    private PrivateKey base64ToPrivateKey(String base64Key) throws InvalidKeySpecException, IOException {
+        byte[] keyBytes = getPemContent(base64Key);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         return keyFactory.generatePrivate(spec);
     }
@@ -111,6 +99,7 @@ public class CryptoLibrary {
                     ecdsaVerifyV1(pubKey, ecdsaSign, Arrays.copyOfRange(signatureBytes, 0, signatureBytes.length-1), dataHash) ||
                     ecdsaVerifyV1(pubKey, ecdsaSign, Arrays.copyOfRange(signatureBytes, 0, signatureBytes.length-2), dataHash);
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -209,11 +198,20 @@ public class CryptoLibrary {
 
             Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding", "BC");
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(cipherKey, "AES"), new IvParameterSpec(iv), new SecureRandom());
-            return new String(cipher.doFinal(Base64.getDecoder().decode(encrypted)), StandardCharsets.UTF_8);
+            byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+            return new String(stripEmptyBytes(decrypted), StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error AES decrypting message", e);
         }
+    }
+
+    private byte[] stripEmptyBytes(byte[] bytes) {
+        int i = bytes.length - 1;
+        while (i >= 0 && bytes[i] == 0) {
+            --i;
+        }
+        return Arrays.copyOf(bytes, i + 1);
     }
 
     private byte[] pbkd2fSha1(String data, int lengthBytes) throws InvalidKeySpecException {
@@ -224,6 +222,14 @@ public class CryptoLibrary {
     private byte[] pbkd2fSha256(String data, int lengthBytes) throws InvalidKeySpecException {
         PBEKeySpec spec = new PBEKeySpec(data.toCharArray(), PBKD_SECRET, PBKD_ITERATIONS, lengthBytes * 8);
         return keyFactoryPbkdf2WithHmacSHA256.generateSecret(spec).getEncoded();
+    }
+
+    private byte[] getPemContent(String base64Pem) throws IOException {
+        String pemString = new String(Base64.getDecoder().decode(base64Pem), StandardCharsets.UTF_8);
+        StringReader stringReader = new StringReader(pemString);
+        PemReader pemReader = new PemReader(stringReader);
+        PemObject pemObject = pemReader.readPemObject();
+        return pemObject.getContent();
     }
 }
 

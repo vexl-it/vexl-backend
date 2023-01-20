@@ -7,8 +7,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * It is not pretty to test multiple operations in one function but for the sake of developer's sanity let's keep it like this.
  */
 public class CryptoTests {
-    private final String publicKey1 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVObVJGZkdtL1JqbFdxZ2tPYWx6NS9YSXlBWEFSVjdLSQpUbHlBUjBHcVNWODVRK0VjTkZJR2N3K3RXTFE3Vkp0SnZ0OStJa2RMTUl3PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
-    private final String privateKey1 = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1IZ0NBUUF3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0VFWVRCZkFnRUJCQng5a3MyMmlWMFl2bzRrVndCQW5sQ3YKOUQyZlVzQmdNbHhQUHBiL29Ud0RPZ0FFTm1SRmZHbS9SamxXcWdrT2FsejUvWEl5QVhBUlY3S0lUbHlBUjBHcQpTVjg1UStFY05GSUdjdyt0V0xRN1ZKdEp2dDkrSWtkTE1Jdz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=";
+
+    // There are some bytes appended at the end of first 2 keys to test if we can process them correctly
+    private final String publicKey1 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVObVJGZkdtL1JqbFdxZ2tPYWx6NS9YSXlBWEFSVjdLSQpUbHlBUjBHcVNWODVRK0VjTkZJR2N3K3RXTFE3Vkp0SnZ0OStJa2RMTUl3PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0KSS";
+    private final String privateKey1 = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1IZ0NBUUF3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0VFWVRCZkFnRUJCQng5a3MyMmlWMFl2bzRrVndCQW5sQ3YKOUQyZlVzQmdNbHhQUHBiL29Ud0RPZ0FFTm1SRmZHbS9SamxXcWdrT2FsejUvWEl5QVhBUlY3S0lUbHlBUjBHcQpTVjg1UStFY05GSUdjdyt0V0xRN1ZKdEp2dDkrSWtkTE1Jdz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQoLDA==";
     private final String publicKey2 = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVuY2VIZXYydUdzeXowVS9CZFdOY21DYVBOUzhFTGJxawpoUzhDd3lyQnBmUkVLUmZkbVFuVHpWTERpRnByYlY4Tngxay9CQkJleHZBPQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
     private final String privateKey2 = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1IZ0NBUUF3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0VFWVRCZkFnRUJCQnlGb01ZN3FYa2NFcUtiWEtmSnpHaXEKR0kwRjAwa1FJU0JCaUdWTW9Ud0RPZ0FFbmNlSGV2MnVHc3l6MFUvQmRXTmNtQ2FQTlM4RUxicWtoUzhDd3lyQgpwZlJFS1JmZG1RblR6VkxEaUZwcmJWOE54MWsvQkJCZXh2QT0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=";
 
@@ -60,7 +62,7 @@ public class CryptoTests {
                 "MDwCHDEcmJ449RWPxQMz5O3BcoQb3D261wVR7SQTY9kCHFtXATCV/0mQB0dmwK3TIm7Xy6DWiLIgGkVXY/c=",
         };
 
-        for (String signature : signatures) {
+        for (String signature: signatures) {
             assertThat(CryptoLibrary.instance.ecdsaVerifyV2(publicKey2, data, signature)).isTrue();
         }
 
@@ -91,9 +93,10 @@ public class CryptoTests {
     @Test
     void testAesIgnoreTag() {
         String data = "asdfasdf this must be longer than long yes, sesakejaf lksdjlf kajs dlfkjalksd jflkasj dflkajskdlůfj aslkdjf klaůsjdfkl ajsdlkfj aklůsjdfk aůsjdf aklsdjf klajs dklfa";
-        String pass = "asdfasdfa else aklsdj fklajskldfj klasjd klfj alksd jfklajs kldfj aklsjdflkajs kldfj alksjdf lkajslk djfklajsd kfkas jdfklaj skldfjakls jdflkaj slkdfjasl kdfjlkasjdf lkajsdf";
+        String pass="asdfasdfa else aklsdj fklajskldfj klasjd klfj alksd jfklajs kldfj aklsjdflkajs kldfj alksjdf lkajslk djfklajsd kfkas jdfklaj skldfjakls jdflkaj slkdfjasl kdfjlkasjdf lkajsdf";
 
         String cipher = CryptoLibrary.instance.aesEncryptIgnoreTag(pass, data);
         assertThat(CryptoLibrary.instance.aesDecryptIgnoreTag(pass, cipher)).isEqualTo(data);
     }
 }
+
