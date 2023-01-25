@@ -204,17 +204,17 @@ public class ContactService {
             if (statKey == StatsKey.CONTACTS_COUNT) {
                 statsDtos.add(new StatsDto(
                         StatsKey.CONTACTS_COUNT,
-                        (int) this.contactRepository.getConnectionsCount() // todo cast will become a problem eventually
+                        this.contactRepository.getConnectionsCount()
                 ));
             } else if (statKey == StatsKey.UNIQUE_CONTACTS_COUNT) {
                 statsDtos.add(new StatsDto(
                         StatsKey.UNIQUE_CONTACTS_COUNT,
-                        (int) this.contactRepository.getCountOfContacts() // todo cast will become a problem eventually
+                        this.contactRepository.getCountOfContacts()
                 ));
             } else if (statKey == StatsKey.UNIQUE_USERS_COUNT) {
                 statsDtos.add(new StatsDto(
                         StatsKey.UNIQUE_USERS_COUNT,
-                        (int) this.contactRepository.getCountOfUsers() // todo cast will become a problem eventually
+                        this.contactRepository.getCountOfUsers()
                 ));
             }
         });
@@ -222,17 +222,17 @@ public class ContactService {
     }
 
     @Transactional(readOnly = true)
-    public Long retrieveTotalCountOfConnections() {
+    public int retrieveTotalCountOfConnections() {
         return contactRepository.getConnectionsCount();
     }
 
     @Transactional(readOnly = true)
-    public Long retrieveCountOfUniqueUsers() {
+    public int retrieveCountOfUniqueUsers() {
         return contactRepository.getCountOfUsers();
     }
 
     @Transactional(readOnly = true)
-    public Long retrieveCountOfUniqueContacts() {
+    public int retrieveCountOfUniqueContacts() {
         return contactRepository.getCountOfContacts();
     }
 }

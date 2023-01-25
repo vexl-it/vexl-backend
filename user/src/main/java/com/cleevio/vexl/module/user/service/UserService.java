@@ -100,7 +100,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Long getUsersCount() {
+    public long getUsersCount() {
         return userRepository.count();
     }
 }

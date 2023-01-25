@@ -37,6 +37,7 @@ public class TwilioService implements SmsService {
             if (ex.getCode() == INVALID_NUMBER || ex.getCode() == NOT_NUMBER) {
                 throw new InvalidPhoneNumberException();
             }
+
             log.error("Failed to send sms to number {}", phoneNumber, ex);
 
             throw ex;

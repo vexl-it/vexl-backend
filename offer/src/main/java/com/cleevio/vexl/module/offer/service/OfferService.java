@@ -254,15 +254,14 @@ public class OfferService {
 
             log.info("Deleting all offers older then [{}].", expiration);
 
-            long removedPrivateCount = this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
-            long removedPublicPartsCount = this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
-
+            int removedPrivateCount = this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
+            int removedPublicPartsCount = this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
 
 
             offerPublicPartExpiredCounter.increment(removedPublicPartsCount);
             offerPrivatePartExpiredCounter.increment(removedPrivateCount);
 
-            applicationEventPublisher.publishEvent(new OffersExpiredEvent((int)removedPrivateCount, (int) removedPublicPartsCount));
+            applicationEventPublisher.publishEvent(new OffersExpiredEvent((int) removedPrivateCount, (int) removedPublicPartsCount));
 
         } catch (Exception e) {
             log.error("Error while removing expired offers: " + e.getMessage(), e);
@@ -272,8 +271,12 @@ public class OfferService {
     @Transactional
     public void deleteOfferByOfferIdAndPublicKey(@Valid DeletePrivatePartRequest request) {
         if (request.publicKeys().isEmpty() || request.adminIds().isEmpty()) return;
-        long privatePartsDeleted = this.offerPrivateRepository.deletePrivatePartOfferByAdminIdsAndPublicKeys(request.adminIds(), request.publicKeys());
+        int privatePartsDeleted = this.offerPrivateRepository.deletePrivatePartOfferByAdminIdsAndPublicKeys(request.adminIds(), request.publicKeys());
         offerPrivatePartDeletedCounter.increment(privatePartsDeleted);
+        applicationEventPublisher.publishEvent(new OffersDeletedEvent(
+                0,
+                privatePartsDeleted
+        ));
     }
 
     @Transactional
@@ -408,12 +411,12 @@ public class OfferService {
     }
 
     @Transactional(readOnly = true)
-    public long retrieveActiveOffersCount(OfferType type) {
+    public int retrieveActiveOffersCount(OfferType type) {
         return offerPublicRepository.getActiveOffersCount(type);
     }
 
     @Transactional(readOnly = true)
-    public long retrieveAllTimeOffersCount() {
+    public int retrieveAllTimeOffersCount() {
         return offerPublicRepository.getAllTimeCount();
     }
 
@@ -424,8 +427,12 @@ public class OfferService {
                     There is(are) already created private part(s) with the public key.
                     The private part(s) will be deleted and new will be created.
                     """);
-            long privatePartsDeleted = this.offerPrivateRepository.deletePrivatePartOfferByAdminIdAndPublicKeys(adminId, publicKeys);
+            int privatePartsDeleted = this.offerPrivateRepository.deletePrivatePartOfferByAdminIdAndPublicKeys(adminId, publicKeys);
             offerPrivatePartDeletedCounter.increment(privatePartsDeleted);
+            applicationEventPublisher.publishEvent(new OffersDeletedEvent(
+                    0,
+                    (int) privatePartsDeleted
+            ));
         }
     }
 
