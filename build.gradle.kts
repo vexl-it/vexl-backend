@@ -57,6 +57,7 @@ subprojects {
         implementation("org.springframework.boot:spring-boot-starter-log4j2")
         implementation("org.springframework.boot:spring-boot-starter-security")
         implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("org.springframework.cloud:spring-cloud-starter-sleuth:3.1.3")
         implementation("org.postgresql:postgresql:42.3.6")
         implementation("org.springframework.boot:spring-boot-devtools")
         implementation("io.sentry:sentry-spring-boot-starter:6.4.0")
