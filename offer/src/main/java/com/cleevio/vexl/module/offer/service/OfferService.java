@@ -20,6 +20,8 @@ import com.cleevio.vexl.module.offer.exception.MissingOwnerPrivatePartException;
 import com.cleevio.vexl.module.offer.exception.OfferNotFoundException;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
+import com.cleevio.vexl.module.stats.event.OffersDeletedEvent;
+import com.cleevio.vexl.module.stats.event.OffersExpiredEvent;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +63,7 @@ public class OfferService {
     private final OfferPrivateRepository offerPrivateRepository;
     private final MessageDigest messageDigest;
     private final AdvisoryLockService advisoryLockService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private final Counter offerPublicPartExpiredCounter;
     private final Counter offerPrivatePartExpiredCounter;
@@ -78,12 +82,14 @@ public class OfferService {
             AdvisoryLockService advisoryLockService,
             @Value("${offer.expiration}")
             Integer expirationPeriod,
-            MeterRegistry registry
+            MeterRegistry registry,
+            ApplicationEventPublisher applicationEventPublisher
     ) {
         this.offerPublicRepository = offerPublicRepository;
         this.offerPrivateRepository = offerPrivateRepository;
         this.advisoryLockService = advisoryLockService;
         this.expirationPeriod = expirationPeriod;
+        this.applicationEventPublisher = applicationEventPublisher;
 
         this.offerPublicPartExpiredCounter = Counter
                 .builder("analytics.offers.expiration.public_part")
@@ -189,6 +195,11 @@ public class OfferService {
 
         offerPrivatePartDeletedCounter.increment(privatePartsDeleted);
         offerPublicPartDeletedCounter.increment(publicPartsDeleted);
+
+        applicationEventPublisher.publishEvent(new OffersDeletedEvent(
+                (int) publicPartsDeleted,
+                (int) privatePartsDeleted
+        ));
     }
 
     @Transactional
@@ -244,10 +255,15 @@ public class OfferService {
             log.info("Deleting all offers older then [{}].", expiration);
 
             long removedPrivateCount = this.offerPrivateRepository.deleteAllExpiredPrivateParts(expiration);
-            long removedPublicParsCount = this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
+            long removedPublicPartsCount = this.offerPublicRepository.deleteAllExpiredPublicParts(expiration);
 
-            offerPublicPartExpiredCounter.increment(removedPublicParsCount);
+
+
+            offerPublicPartExpiredCounter.increment(removedPublicPartsCount);
             offerPrivatePartExpiredCounter.increment(removedPrivateCount);
+
+            applicationEventPublisher.publishEvent(new OffersExpiredEvent((int)removedPrivateCount, (int) removedPublicPartsCount));
+
         } catch (Exception e) {
             log.error("Error while removing expired offers: " + e.getMessage(), e);
         }

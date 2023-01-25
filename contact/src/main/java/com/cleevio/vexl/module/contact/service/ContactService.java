@@ -204,7 +204,17 @@ public class ContactService {
             if (statKey == StatsKey.CONTACTS_COUNT) {
                 statsDtos.add(new StatsDto(
                         StatsKey.CONTACTS_COUNT,
-                        (int) this.contactRepository.getConnectionsCount() // todo this will become a problem eventually
+                        (int) this.contactRepository.getConnectionsCount() // todo cast will become a problem eventually
+                ));
+            } else if (statKey == StatsKey.UNIQUE_CONTACTS_COUNT) {
+                statsDtos.add(new StatsDto(
+                        StatsKey.UNIQUE_CONTACTS_COUNT,
+                        (int) this.contactRepository.getCountOfContacts() // todo cast will become a problem eventually
+                ));
+            } else if (statKey == StatsKey.UNIQUE_USERS_COUNT) {
+                statsDtos.add(new StatsDto(
+                        StatsKey.UNIQUE_USERS_COUNT,
+                        (int) this.contactRepository.getCountOfUsers() // todo cast will become a problem eventually
                 ));
             }
         });

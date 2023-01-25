@@ -136,6 +136,10 @@ public class UserService {
                         StatsKey.ACTIVE_USERS_COUNT,
                         this.userRepository.getActiveUsersCount()
                 ));
+                case REMOVED_USERS_COUNT -> statsDtos.add(new StatsDto(
+                        StatsKey.REMOVED_USERS_COUNT,
+                        this.userRepository.getAllTimeUsersCount() - this.userRepository.getActiveUsersCount()
+                ));
             }
         });
         return statsDtos;
