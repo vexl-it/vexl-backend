@@ -17,13 +17,13 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
 
     @Modifying
     @Query("delete from OfferPublicPart o where o.adminId in :adminIds ")
-    void deleteByAdminIds(List<String> adminIds);
+    long deleteByAdminIds(List<String> adminIds);
 
     Optional<OfferPublicPart> findByAdminId(String adminId);
 
     @Modifying
     @Query("delete from OfferPublicPart p where p.refreshedAt < :expiration")
-    void deleteAllExpiredPublicParts(LocalDate expiration);
+    long deleteAllExpiredPublicParts(LocalDate expiration);
 
     @Query("select count(p) from OfferPublicPart p where p.offerType = :type and p.modifiedAt > :period ")
     int getModifiedOffersCount(LocalDate period, OfferType type);

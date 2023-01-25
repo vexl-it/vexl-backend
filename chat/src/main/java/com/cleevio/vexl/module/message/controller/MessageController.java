@@ -14,11 +14,14 @@ import com.cleevio.vexl.module.message.entity.Message;
 import com.cleevio.vexl.module.message.mapper.MessageMapper;
 import com.cleevio.vexl.module.message.service.MessageService;
 import com.cleevio.vexl.module.message.service.query.SendMessageToInboxQuery;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +38,28 @@ public class MessageController {
     private final MessageService messageService;
     private final ChallengeService challengeService;
     private final MessageMapper messageMapper;
+
+    @Autowired
+    public MessageController(
+            InboxService inboxService,
+            MessageService messageService,
+            ChallengeService challengeService,
+            MessageMapper messageMapper,
+            MeterRegistry registry
+    ) {
+        this.inboxService = inboxService;
+        this.messageService = messageService;
+        this.challengeService = challengeService;
+        this.messageMapper = messageMapper;
+
+        Gauge.builder("analytics.messages.count_total", messageService, MessageService::getTotalMessagesCount)
+                .description("Total number of messages")
+                .register(registry);
+
+        Gauge.builder("analytics.messages.count_not_pulled", messageService, MessageService::getNotPulledMessagesCount)
+                .description("Number of messages that users has not pulled")
+                .register(registry);
+    }
 
     @PutMapping
     @SecurityRequirements({

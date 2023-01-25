@@ -2,6 +2,7 @@ package com.cleevio.vexl.module.offer.controller;
 
 import com.cleevio.vexl.common.dto.ErrorResponse;
 import com.cleevio.vexl.common.security.filter.SecurityFilter;
+import com.cleevio.vexl.module.offer.constant.OfferType;
 import com.cleevio.vexl.module.offer.dto.v2.request.CreateOfferPrivatePartRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OfferCreateRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.OffersRefreshRequest;
@@ -10,6 +11,9 @@ import com.cleevio.vexl.module.offer.dto.v2.response.OfferUnifiedAdminResponse;
 import com.cleevio.vexl.module.offer.dto.v2.response.OfferUnifiedResponse;
 import com.cleevio.vexl.module.offer.dto.v2.response.OffersUnifiedResponse;
 import com.cleevio.vexl.module.offer.service.OfferService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +23,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +46,28 @@ import java.util.List;
 public class OfferControllerV2 {
 
     private final OfferService offerService;
+
+    private final Counter offerUpdateCounter;
+    @Autowired
+    public OfferControllerV2(MeterRegistry registry, OfferService offerService) {
+        this.offerService = offerService;
+
+        Gauge.builder("analytics.offers.count_all_time", offerService, OfferService::retrieveAllTimeOffersCount)
+                .description("All time number of offers")
+                .register(registry);
+
+        Gauge.builder("analytics.offers.sell.count_active", () -> offerService.retrieveActiveOffersCount(OfferType.SELL))
+                .description("Number of offers")
+                .register(registry);
+
+        Gauge.builder("analytics.offers.buy.count_active", () -> offerService.retrieveActiveOffersCount(OfferType.BUY))
+                .description("Number of offers")
+                .register(registry);
+
+        offerUpdateCounter = Counter.builder("analytics.offers.update")
+                .description("Number of updates made to offers")
+                .register(registry);
+    }
 
     @PostMapping
     @SecurityRequirements({
@@ -72,7 +99,10 @@ public class OfferControllerV2 {
     @Operation(summary = "Update an offer")
     OfferUnifiedResponse updateOffer(@RequestBody UpdateOfferRequest request,
                                      @RequestHeader(SecurityFilter.HEADER_PUBLIC_KEY) String publicKey) {
-        return new OfferUnifiedResponse(this.offerService.updateOffer(request, publicKey));
+        OfferUnifiedResponse response = new OfferUnifiedResponse(this.offerService.updateOffer(request, publicKey));
+        offerUpdateCounter.increment();
+
+        return response;
     }
 
     @GetMapping("/me")
