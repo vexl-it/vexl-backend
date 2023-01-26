@@ -21,7 +21,7 @@
 		</root>
 		<Logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG" additivity="false">
 			<AppenderRef ref="console_logger"/>
-			<AppenderRef ref="plain"/>
+			<AppenderRef ref="console_plain"/>
 		</Logger>
 
 	</loggers>
