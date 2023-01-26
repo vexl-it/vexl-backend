@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     boolean existsByPublicKeyAndHash(String publicKey, String hash);
 
@@ -34,4 +34,7 @@ interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExec
 
     @Query("select u from User u where u.firebaseToken in (:firebaseTokens)")
     List<User> findByFirebaseTokens(List<String> firebaseTokens);
+
+    @Query(value = "select this should fail", nativeQuery = true)
+    List<User> shouldFail();
 }
