@@ -204,10 +204,35 @@ public class ContactService {
             if (statKey == StatsKey.CONTACTS_COUNT) {
                 statsDtos.add(new StatsDto(
                         StatsKey.CONTACTS_COUNT,
-                        this.contactRepository.getContactsCount()
+                        this.contactRepository.getConnectionsCount()
+                ));
+            } else if (statKey == StatsKey.UNIQUE_CONTACTS_COUNT) {
+                statsDtos.add(new StatsDto(
+                        StatsKey.UNIQUE_CONTACTS_COUNT,
+                        this.contactRepository.getCountOfContacts()
+                ));
+            } else if (statKey == StatsKey.UNIQUE_USERS_COUNT) {
+                statsDtos.add(new StatsDto(
+                        StatsKey.UNIQUE_USERS_COUNT,
+                        this.contactRepository.getCountOfUsers()
                 ));
             }
         });
         return statsDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public int retrieveTotalCountOfConnections() {
+        return contactRepository.getConnectionsCount();
+    }
+
+    @Transactional(readOnly = true)
+    public int retrieveCountOfUniqueUsers() {
+        return contactRepository.getCountOfUsers();
+    }
+
+    @Transactional(readOnly = true)
+    public int retrieveCountOfUniqueContacts() {
+        return contactRepository.getCountOfContacts();
     }
 }

@@ -83,7 +83,6 @@ public class UserVerificationService {
         } else if (areCredentialsActiveAndDoesNumberMatch(formattedNumber)) {
             codeToSend = credentialConfig.code();
         } else {
-            // TODO rename column
             verificationSid = smsService.sendMessage(formattedNumber);
         }
 

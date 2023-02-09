@@ -98,4 +98,9 @@ public class UserService {
                 request.signature()
         );
     }
+
+    @Transactional(readOnly = true)
+    public long getUsersCount() {
+        return userRepository.count();
+    }
 }

@@ -14,6 +14,8 @@ import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.user.service.SignatureService;
 import com.cleevio.vexl.module.user.service.UserService;
 import com.cleevio.vexl.module.user.service.UserVerificationService;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,6 +25,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +38,17 @@ public class UserController {
     private final UserService userService;
     private final UserVerificationService userVerificationService;
     private final SignatureService signatureService;
+
+    @Autowired
+    public UserController(UserService userService, UserVerificationService userVerificationService, SignatureService signatureService, MeterRegistry meterRegistry) {
+        this.userService = userService;
+        this.userVerificationService = userVerificationService;
+        this.signatureService = signatureService;
+
+        Gauge.builder("analytics.users.count", userService, UserService::getUsersCount)
+                .description("Number of users")
+                .register(meterRegistry);
+    }
 
     @PostMapping("/confirmation/phone")
     @ApiResponses({

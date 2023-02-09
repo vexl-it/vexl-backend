@@ -190,6 +190,16 @@ public class MessageService {
         return messageRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public int getTotalMessagesCount() {
+        return messageRepository.getLastValueInSequenceForMessage();
+    }
+
+    @Transactional(readOnly = true)
+    public int getNotPulledMessagesCount() {
+        return messageRepository.getNotPulledMessagesCount();
+    }
+
     private void verifyBatchChallenges(SendMessageBatchRequest request, final int cryptoVersion) {
         final List<VerifySignedChallengeQuery> queryListForVerification = new ArrayList<>();
         request.data().forEach(batch -> queryListForVerification.add(new VerifySignedChallengeQuery(batch.senderPublicKey(), batch.signedChallenge())));

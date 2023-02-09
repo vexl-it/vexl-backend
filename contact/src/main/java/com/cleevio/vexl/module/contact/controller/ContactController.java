@@ -16,6 +16,8 @@ import com.cleevio.vexl.module.contact.constant.ConnectionLevel;
 import com.cleevio.vexl.module.contact.service.ContactService;
 import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.contact.service.ImportService;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,6 +28,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -51,6 +54,24 @@ public class ContactController {
 
     private final ImportService importService;
     private final ContactService contactService;
+
+    @Autowired
+    public ContactController(ImportService importService, ContactService contactService, MeterRegistry registry) {
+        this.importService = importService;
+        this.contactService = contactService;
+
+        Gauge.builder("analytics.contacts.count_unique_users", contactService, ContactService::retrieveCountOfUniqueUsers)
+                .description("Number of unique users")
+                .register(registry);
+
+        Gauge.builder("analytics.contacts.count_unique_contacts", contactService, ContactService::retrieveCountOfUniqueContacts)
+                .description("Number of unique contacts")
+                .register(registry);
+
+        Gauge.builder("analytics.contacts.count_of_connections", contactService, ContactService::retrieveTotalCountOfConnections)
+                .description("Total number of connections")
+                .register(registry);
+    }
 
     @PostMapping("/import")
     @SecurityRequirements({

@@ -32,6 +32,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterAfter(new SecurityFilter(signatureService), UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/api-docs/**").permitAll()
+                .antMatchers("/actuator/prometheus").permitAll()
 				.antMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated();
     }
