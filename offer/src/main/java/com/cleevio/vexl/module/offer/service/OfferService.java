@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Offer service implements importing, filtering and deleting of an offer, which is divided to public part and private part.
@@ -72,6 +73,8 @@ public class OfferService {
 
     @Value("${offer.expiration}")
     private final Integer expirationPeriod;
+    @Value("${offer.reportFilter:-1}")
+    private final Integer reportFilter;
     private static final long ONE = 1;
     private static final int SIXTY_FOUR = 64;
 
@@ -82,6 +85,8 @@ public class OfferService {
             AdvisoryLockService advisoryLockService,
             @Value("${offer.expiration}")
             Integer expirationPeriod,
+            @Value("${offer.reportFilter:-1}")
+            Integer reportFilter,
             MeterRegistry registry,
             ApplicationEventPublisher applicationEventPublisher
     ) {
@@ -90,6 +95,7 @@ public class OfferService {
         this.advisoryLockService = advisoryLockService;
         this.expirationPeriod = expirationPeriod;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.reportFilter = (reportFilter == -1) ? Integer.MAX_VALUE : reportFilter;
 
         this.offerPublicPartExpiredCounter = Counter
                 .builder("analytics.offers.expiration.public_part")
@@ -158,7 +164,9 @@ public class OfferService {
      */
     @Transactional(readOnly = true)
     public List<OfferPrivatePart> findOffersByPublicKey(final String publicKey) {
-        return this.offerPrivateRepository.findAllByUserPublicKey(publicKey);
+        final LocalDate expiration = LocalDate.now().minusDays(expirationPeriod);
+
+        return this.offerPrivateRepository.findAllByUserPublicKey(publicKey, reportFilter, expiration);
     }
 
     /**
@@ -167,9 +175,20 @@ public class OfferService {
      */
     @Transactional(readOnly = true)
     public List<OfferPrivatePart> getNewOrModifiedOffers(LocalDate modifiedAt, String publicKey) {
-        return this.offerPrivateRepository.findAllByUserPublicKeyAndModifiedAt(
-                publicKey, modifiedAt
+        final LocalDate expiration = LocalDate.now().minusDays(expirationPeriod);
+
+        var offers = this.offerPrivateRepository.findAllByUserPublicKeyAndModifiedAt(
+                publicKey, modifiedAt, reportFilter, expiration
         );
+
+        var ids = offers.stream().map(OfferPrivatePart::getId);
+        var idString = "";
+        for (var id : ids.toArray()) {
+            idString += id + ", ";
+        }
+
+
+        return offers;
     }
 
     @Transactional(readOnly = true)
@@ -310,9 +329,10 @@ public class OfferService {
 
     @Transactional(readOnly = true)
     public List<String> retrieveNotExistingOfferIds(@Valid final NotExistingOffersRequest request, final String publicKey) {
+        final LocalDate expiration = LocalDate.now().minusDays(expirationPeriod);
         List<String> offerIds = request.offerIds();
 
-        final List<String> existingOfferIds = this.offerPrivateRepository.findExistingOfferIds(offerIds, publicKey);
+        final List<String> existingOfferIds = this.offerPrivateRepository.findExistingOfferIds(offerIds, publicKey, reportFilter, expiration);
 
         offerIds.removeAll(existingOfferIds);
         return offerIds;
