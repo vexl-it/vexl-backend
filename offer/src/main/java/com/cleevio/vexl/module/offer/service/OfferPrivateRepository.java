@@ -19,9 +19,12 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
 
     @Query("""
             select p from OfferPrivatePart p 
-            where p.userPublicKey = :userPublicKey AND p.payloadPrivate is not null
+            where p.userPublicKey = :userPublicKey 
+            AND p.payloadPrivate is not null
+            AND p.offerPublicPart.report < :reportFilter
+            AND p.offerPublicPart.refreshedAt >= :expirationDate
             """)
-    List<OfferPrivatePart> findAllByUserPublicKey(String userPublicKey);
+    List<OfferPrivatePart> findAllByUserPublicKey(String userPublicKey, int reportFilter, LocalDate expirationDate);
 
     @Query("select p from OfferPrivatePart p where p.offerPublicPart.offerId = :offerId and p.userPublicKey = :userPublicKey")
     Optional<OfferPrivatePart> findByUserPublicKeyAndPublicPartId(String userPublicKey, String offerId);
@@ -30,9 +33,11 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
             select p from OfferPrivatePart p 
             where p.userPublicKey= :userPublicKey AND p.offerPublicPart.modifiedAt >= :modifiedAt 
             AND p.payloadPrivate is not null
+            and p.offerPublicPart.report < :reportFilter
+            and p.offerPublicPart.refreshedAt >= :expirationDate
             order by p.offerPublicPart.id asc
             """)
-    List<OfferPrivatePart> findAllByUserPublicKeyAndModifiedAt(String userPublicKey, LocalDate modifiedAt);
+    List<OfferPrivatePart> findAllByUserPublicKeyAndModifiedAt(String userPublicKey, LocalDate modifiedAt, int reportFilter, LocalDate expirationDate);
 
     @Modifying
     @Query("""
@@ -58,6 +63,13 @@ interface OfferPrivateRepository extends JpaRepository<OfferPrivatePart, Long>, 
     @Query("select case when (count(p) > 0) then true else false end from OfferPrivatePart p where p.userPublicKey in :userPublicKey and p.offerPublicPart.adminId = :adminId")
     boolean existsByUserPublicKeysAndAdminId(Set<String> userPublicKey, String adminId);
 
-    @Query("select pp.offerId from OfferPrivatePart p join p.offerPublicPart pp where p.userPublicKey = :publicKey and pp.offerId in (:offerIds)")
-    List<String> findExistingOfferIds(List<String> offerIds, String publicKey);
+    @Query("""
+        select pp.offerId 
+        from OfferPrivatePart p join p.offerPublicPart pp 
+        where p.userPublicKey = :publicKey 
+        and pp.offerId in (:offerIds)
+        and p.offerPublicPart.report < :reportFilter 
+        and p.offerPublicPart.refreshedAt >= :expirationDate
+        """)
+    List<String> findExistingOfferIds(List<String> offerIds, String publicKey, int reportFilter, LocalDate expirationDate);
 }
