@@ -35,6 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api-docs/**").permitAll()
 				.antMatchers("/actuator/health").permitAll()
                 .antMatchers("/actuator/prometheus").permitAll()
+                .antMatchers("/internal/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/v1/user/confirmation/**").anonymous()
                 .anyRequest().authenticated();
     }

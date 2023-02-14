@@ -34,6 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api-docs/**").permitAll()
                 .antMatchers("/actuator/prometheus").permitAll()
 				.antMatchers("/actuator/health").permitAll()
+                .antMatchers("/internal/**").permitAll()
                 .anyRequest().authenticated();
     }
 }
