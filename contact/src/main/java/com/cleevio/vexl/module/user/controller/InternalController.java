@@ -1,21 +1,22 @@
-package com.cleevio.vexl.module.user.service.scheduled;
+package com.cleevio.vexl.module.user.controller;
 
 import com.cleevio.vexl.module.user.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Component
+@Tag(name = "Inactivity")
+@RestController
+@RequestMapping("/internal/inactivity")
 @RequiredArgsConstructor
-public class UserInactivityTask {
-
+public class InternalController {
     private final UserService userService;
-
     @Value("${inactivity.period}")
     private final Integer notificationAfter;
 
-    @Scheduled(cron = "-")
+    @RequestMapping("/process-user-inactivity")
     public void processUserInactivity() {
         this.userService.processNotificationsForInactivity(notificationAfter);
     }
