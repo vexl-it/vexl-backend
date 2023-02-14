@@ -111,9 +111,9 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
     @Query("select count(uc) from UserContact uc")
     int getConnectionsCount();
 
-    @Query(value = "select count(unique uc.hash_from) from user_contact uc", nativeQuery = true)
+    @Query(value = "select count(distinct uc.hash_from) from user_contact uc", nativeQuery = true)
     int getCountOfUsers();
 
-    @Query(value = "select count(unique uc.hash_to) from user_contact uc", nativeQuery = true)
+    @Query(value = "select count(distinct uc.hash_to) from user_contact uc", nativeQuery = true)
     int getCountOfContacts();
 }
