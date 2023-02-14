@@ -11,7 +11,7 @@ public class StatsTask {
 
     private final StatsService statsService;
 
-    @Scheduled(cron = "${cron.stats}")
+    @Scheduled(cron = "-")
     public void processStats() {
         statsService.processStats();
     }
