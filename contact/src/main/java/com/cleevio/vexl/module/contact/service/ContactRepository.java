@@ -21,6 +21,10 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
     @Query("delete from UserContact uc where uc.hashFrom in (select u.hash from User u where u.publicKey = :publicKey) ")
     void deleteAllByPublicKey(String publicKey);
 
+    @Modifying
+    @Query("delete from UserContact uc where uc.hashFrom in (select u.hash from User u where u.publicKey = :publicKey) ")
+    void deleteAllByPublicKeyNotTransactional(String publicKey);
+
     @Transactional
     @Modifying
     @Query("""

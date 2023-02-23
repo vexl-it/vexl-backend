@@ -92,6 +92,19 @@ public class ContactController {
         return this.importService.importContacts(user, importRequest);
     }
 
+    @PostMapping("/import/replace")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400 (101102)", description = "Import list is empty. Nothing to import.", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @Operation(
+            summary = "Import contacts. Replaces all contact of current user with new ones.",
+            description = "Contacts have to be sent encrypted with HMAC-SHA256."
+    )
+    ImportResponse replaceContacts(@AuthenticationPrincipal User user, @RequestBody ImportRequest importRequest) {
+        return this.importService.importContacts(user, importRequest, true);
+    }
+
     @GetMapping("/me")
     @SecurityRequirements({
             @SecurityRequirement(name = SecurityFilter.HEADER_PUBLIC_KEY),

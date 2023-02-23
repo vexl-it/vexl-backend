@@ -30,8 +30,16 @@ public class ImportService {
     private static final String NO_CONTACTS_SENT = "You did not import any contact.";
     private static final String IMPORTED_CONTACTS_MESSAGE = "Imported %s / %s contacts.";
 
-    @Transactional
     public ImportResponse importContacts(final User user, final @Valid ImportRequest importRequest) {
+        return importContacts(user, importRequest, false);
+    }
+    @Transactional
+    public ImportResponse importContacts(final User user, final @Valid ImportRequest importRequest, final boolean replace) {
+        if (replace) {
+            // Already in transaction. Let's not open another.
+            contactRepository.deleteAllByPublicKeyNotTransactional(user.getPublicKey());
+        }
+
         if (importRequest.contacts().isEmpty()) {
             return new ImportResponse(true, NO_CONTACTS_SENT);
         }
