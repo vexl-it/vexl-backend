@@ -21,6 +21,10 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
     @Query("delete from UserContact uc where uc.hashFrom in (select u.hash from User u where u.publicKey = :publicKey) ")
     void deleteAllByPublicKey(String publicKey);
 
+    @Modifying
+    @Query("delete from UserContact uc where uc.hashFrom in (select u.hash from User u where u.publicKey = :publicKey) ")
+    void deleteAllByPublicKeyNotTransactional(String publicKey);
+
     @Transactional
     @Modifying
     @Query("""
@@ -111,9 +115,9 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
     @Query("select count(uc) from UserContact uc")
     int getConnectionsCount();
 
-    @Query(value = "select count(unique uc.hash_from) from user_contact uc", nativeQuery = true)
+    @Query(value = "select count(distinct uc.hash_from) from user_contact uc", nativeQuery = true)
     int getCountOfUsers();
 
-    @Query(value = "select count(unique uc.hash_to) from user_contact uc", nativeQuery = true)
+    @Query(value = "select count(distinct uc.hash_to) from user_contact uc", nativeQuery = true)
     int getCountOfContacts();
 }
