@@ -7,11 +7,7 @@ import com.cleevio.vexl.module.offer.constant.OfferType;
 import com.cleevio.vexl.module.offer.dto.v1.request.DeletePrivatePartRequest;
 import com.cleevio.vexl.module.offer.dto.v1.request.NotExistingOffersRequest;
 import com.cleevio.vexl.module.offer.dto.v1.request.ReportOfferRequest;
-import com.cleevio.vexl.module.offer.dto.v2.request.CreateOfferPrivatePartRequest;
-import com.cleevio.vexl.module.offer.dto.v2.request.OfferCreateRequest;
-import com.cleevio.vexl.module.offer.dto.v2.request.OfferPrivateCreate;
-import com.cleevio.vexl.module.offer.dto.v2.request.OffersRefreshRequest;
-import com.cleevio.vexl.module.offer.dto.v2.request.UpdateOfferRequest;
+import com.cleevio.vexl.module.offer.dto.v2.request.*;
 import com.cleevio.vexl.module.offer.entity.OfferPrivatePart;
 import com.cleevio.vexl.module.offer.entity.OfferPublicPart;
 import com.cleevio.vexl.module.offer.exception.DuplicatedPublicKeyException;
@@ -39,13 +35,7 @@ import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * Offer service implements importing, filtering and deleting of an offer, which is divided to public part and private part.
@@ -177,18 +167,9 @@ public class OfferService {
     public List<OfferPrivatePart> getNewOrModifiedOffers(LocalDate modifiedAt, String publicKey) {
         final LocalDate expiration = LocalDate.now().minusDays(expirationPeriod);
 
-        var offers = this.offerPrivateRepository.findAllByUserPublicKeyAndModifiedAt(
+        return this.offerPrivateRepository.findAllByUserPublicKeyAndModifiedAt(
                 publicKey, modifiedAt, reportFilter, expiration
         );
-
-        var ids = offers.stream().map(OfferPrivatePart::getId);
-        var idString = "";
-        for (var id : ids.toArray()) {
-            idString += id + ", ";
-        }
-
-
-        return offers;
     }
 
     @Transactional(readOnly = true)
