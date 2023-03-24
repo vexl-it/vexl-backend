@@ -103,4 +103,9 @@ public class UserService {
     public long getUsersCount() {
         return userRepository.count();
     }
+
+
+    public void willFail() {
+        userRepository.willFail();
+    }
 }
