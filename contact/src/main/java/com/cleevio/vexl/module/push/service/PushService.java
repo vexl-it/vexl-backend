@@ -3,6 +3,7 @@ package com.cleevio.vexl.module.push.service;
 import com.cleevio.vexl.common.constant.ModuleLockNamespace;
 import com.cleevio.vexl.common.integration.firebase.service.NotificationService;
 import com.cleevio.vexl.common.service.AdvisoryLockService;
+import com.cleevio.vexl.module.contact.service.ContactService;
 import com.cleevio.vexl.module.push.constant.NotificationType;
 import com.cleevio.vexl.module.push.constant.PushAdvisoryLock;
 import com.cleevio.vexl.module.push.dto.NotificationDto;
@@ -15,12 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Validated
@@ -29,6 +25,7 @@ public class PushService {
     private final NotificationService notificationService;
     private final PushRepository pushRepository;
     private final AdvisoryLockService advisoryLockService;
+    private final ContactService contactService;
 
     public void sendImportedNotification(Set<String> firebaseTokens, Set<String> secondDegreeFirebaseTokens, String newUserPublicKey) {
         if (firebaseTokens.isEmpty()) {
@@ -36,6 +33,13 @@ public class PushService {
         }
         this.notificationService.sendPushNotification(new PushNotification(NotificationType.NEW_APP_USER, null, newUserPublicKey, firebaseTokens, secondDegreeFirebaseTokens));
     }
+
+    @Transactional
+    public void sendNotificationAboutNewUser(final String numberHash, final String publicKey) {
+        final var fcmTokensToSendNotificationTo = contactService.retrieveFirebaseTokensOfUsersWhoHaveUserInDirectContact(numberHash);
+        this.notificationService.sendPushNotification(new PushNotification(NotificationType.NEW_APP_USER, null, publicKey, fcmTokensToSendNotificationTo, Collections.emptySet()));
+    }
+
 
     @Transactional
     public void saveNotification(@Valid final NotificationDto notification) {

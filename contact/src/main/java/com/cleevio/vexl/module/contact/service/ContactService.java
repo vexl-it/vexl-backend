@@ -8,6 +8,7 @@ import com.cleevio.vexl.module.contact.dto.request.ContactsImportedEvent;
 import com.cleevio.vexl.module.contact.dto.response.CommonContactsResponse;
 import com.cleevio.vexl.module.contact.constant.ConnectionLevel;
 import com.cleevio.vexl.module.contact.event.GroupJoinedEvent;
+import com.cleevio.vexl.module.push.dto.PushNotification;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
 import com.cleevio.vexl.module.user.entity.User;
@@ -22,12 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -188,6 +184,15 @@ public class ContactService {
                 .filter(firebaseToken -> !firebaseTokens.contains(firebaseToken))
                 .collect(Collectors.toSet());
 
+    }
+
+    @Transactional(readOnly = true)
+    public Set<String> retrieveFirebaseTokensOfUsersWhoHaveUserInDirectContact(final String numberHash) {
+        return contactRepository.retrieveUsersWithFirebaseTokensWhoHaveUserInDirectContact(numberHash)
+                .stream()
+                .map(User::getFirebaseToken)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     @Transactional(readOnly = true)
