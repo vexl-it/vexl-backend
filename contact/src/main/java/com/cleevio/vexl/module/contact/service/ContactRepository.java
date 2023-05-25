@@ -112,16 +112,6 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
             """)
     Set<User> retrieveSecondDegreeFirebaseTokensByHashes(String newUserHash, ConnectionLevel level, Set<String> importedHashes);
 
-
-    @Query("""
-        select distinct u from User u
-        inner join UserContact uc on u.hash = uc.hashFrom
-        where uc.hashTo = :phoneNumberHash 
-            and u.hash != :phoneNumberHash 
-            and u.firebaseToken is not null
-    """)
-    Set <User> retrieveUsersWithFirebaseTokensWhoHaveUserInDirectContact(String phoneNumberHash);
-
     @Query("select count(uc) from UserContact uc")
     int getConnectionsCount();
 
