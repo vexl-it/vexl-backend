@@ -179,6 +179,10 @@ public class UserVerificationService {
     }
 
     private boolean areCredentialsActiveAndDoesNumberMatch(final String formattedNumber) {
+        if(credentialConfig.dummyCodeForAll()) {
+            return true;
+        }
+
         return credentialConfig.active() && credentialConfig.phones() != null &&
                 credentialConfig.code() != null && credentialConfig.phones().contains(formattedNumber);
     }
