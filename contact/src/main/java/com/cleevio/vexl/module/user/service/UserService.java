@@ -2,7 +2,6 @@ package com.cleevio.vexl.module.user.service;
 
 import com.cleevio.vexl.common.constant.ModuleLockNamespace;
 import com.cleevio.vexl.common.service.AdvisoryLockService;
-import com.cleevio.vexl.module.contact.dto.request.UserCreatedEvent;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
 import com.cleevio.vexl.module.user.constant.Platform;
@@ -79,8 +78,6 @@ public class UserService {
         log.info("User id - [{}] created",
                 savedUser.getId());
 
-
-        applicationEventPublisher.publishEvent(new UserCreatedEvent(savedUser.getHash(), savedUser.getPublicKey()));
         return savedUser;
     }
 
