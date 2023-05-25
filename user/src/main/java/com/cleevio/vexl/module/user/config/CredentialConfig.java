@@ -21,7 +21,9 @@ public record CredentialConfig(
         String code,
 
         @NotNull
-        Boolean active
+        Boolean active,
 
+        @NotNull
+        Boolean dummyCodeForAll
 ) {
 }
