@@ -6,5 +6,6 @@ include(
     "contact",
     "offer",
     "user",
-    "common:crypto"
+    "common:crypto",
+    "common:constants"
 )

@@ -71,6 +71,10 @@ subprojects {
             implementation(project(":common:crypto"))
         }
 
+        if(name != "constants") {
+            implementation(project(":common:constants"))
+        }
+
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.springframework.security:spring-security-test:5.7.1")
         testImplementation("org.testcontainers:postgresql:1.17.3")
