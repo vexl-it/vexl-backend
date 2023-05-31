@@ -13,19 +13,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @Tag(name = "User")
@@ -53,8 +47,14 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_NEW_USER')")
     void createUser(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                     @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
+                    @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersion,
                     @RequestBody(required = false) @Nullable CreateUserRequest request) {
-        this.userService.createUser(publicKey, hash, request == null ? new CreateUserRequest(null) : request);
+
+        this.userService.createUser(
+                publicKey,
+                ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersion),
+                request == null ? new CreateUserRequest(null) : request
+        );
     }
 
     @PostMapping("/refresh")
@@ -75,8 +75,9 @@ public class UserController {
     void refresh(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                  @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
                  @RequestHeader(name = SecurityFilter.X_PLATFORM) Platform platform,
+                 @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersion,
                  @RequestBody RefreshUserRequest request) {
-        this.userService.refreshUser(publicKey, hash, platform, request);
+        this.userService.refreshUser(publicKey, ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersion), platform, request);
     }
 
     @PutMapping
@@ -96,8 +97,13 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_USER')")
     void updateFirebaseToken(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                              @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
+                             @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersion,
                              @RequestBody FirebaseTokenUpdateRequest request) {
-        this.userService.updateFirebaseToken(publicKey, hash, request);
+        this.userService.updateFirebaseToken(
+                publicKey,
+                ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersion),
+                request
+        );
     }
 
     @DeleteMapping("/me")

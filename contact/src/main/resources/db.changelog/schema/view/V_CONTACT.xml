@@ -22,7 +22,7 @@ from
 	from
 		users u2
 	join user_contact uc on
-		uc.hash_to = u2.hash
+		(uc.hash_to = u2.hash or uc.hash_to = 'next:' + u2.hash)
 	join users u on
 		u.hash = uc.hash_from
 union
