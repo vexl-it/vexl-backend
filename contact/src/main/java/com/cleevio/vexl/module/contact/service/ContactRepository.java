@@ -32,7 +32,7 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
             where uc.hashFrom = :hash and 
             uc.hashTo in (:hashes)
             """)
-    void deleteContactsByHashes(String hash, List<String> hashes);
+    void deleteContactsByHashes(String hash, Iterable<String> hashes);
 
     @Query("select count(distinct uc) from UserContact uc where uc.hashFrom = :hash ")
     int countContactsByHashFrom(String hash);
