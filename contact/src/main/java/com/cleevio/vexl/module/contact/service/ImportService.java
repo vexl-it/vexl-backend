@@ -4,6 +4,7 @@ import com.cleevio.vexl.module.contact.dto.request.ImportRequest;
 import com.cleevio.vexl.module.contact.dto.response.ImportResponse;
 import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.contact.entity.UserContact;
+import com.google.common.collect.Sets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for importing contacts. All contacts are from phoneHash/facebookIdHash and contact encrypted with HmacSHA256.
@@ -35,6 +37,8 @@ public class ImportService {
     }
     @Transactional
     public ImportResponse importContacts(final User user, final @Valid ImportRequest importRequest, final boolean replace) {
+        final Set<String> existingContactsBeforeClear = this.contactRepository.retrieveExistingContacts(user.getHash());
+
         if (replace) {
             // Already in transaction. Let's not open another.
             contactRepository.deleteAllByPublicKeyNotTransactional(user.getPublicKey());
@@ -45,38 +49,34 @@ public class ImportService {
         }
 
         final int importSize = importRequest.contacts().size();
-
         log.info("Importing new {} contacts for {}",
                 importRequest.contacts().size(),
                 user.getId());
 
-        final List<String> trimContacts = importRequest.contacts()
+        final Set<String> trimedContacts = importRequest.contacts()
                 .stream()
                 .map(String::trim)
                 .filter(c -> !c.equals(user.getHash()))
-                .toList();
+                .collect(Collectors.toSet());
 
-        final Set<String> importedHashes = new HashSet<>();
         final Set<String> existingContacts = this.contactRepository.retrieveExistingContacts(user.getHash());
 
-        for (final String trimContact : trimContacts) {
-            if (existingContacts.add(trimContact)) {
-                final UserContact contact = UserContact.builder()
-                        .hashFrom(user.getHash())
-                        .hashTo(trimContact)
-                        .build();
-                this.contactRepository.save(contact);
-                importedHashes.add(trimContact);
-            }
-        }
+        final Set<UserContact> contactsToAdd = Sets.difference(trimedContacts, existingContacts)
+                .stream()
+                .map(c -> UserContact.builder().hashFrom(user.getHash()).hashTo(c).build())
+                .collect(Collectors.toSet());
+        final Set<String> hashesToRemove = Sets.difference(existingContacts, trimedContacts);
+
+        contactRepository.saveAll(contactsToAdd);
+        contactRepository.deleteContactsByHashes(user.getHash(), hashesToRemove);
 
         final String message = String.format(IMPORTED_CONTACTS_MESSAGE,
-                importedHashes.size(),
+                contactsToAdd.size(),
                 importSize);
 
-        log.info(message);
-
-        contactService.sendNotificationToContacts(importedHashes, user);
+        // Notify only the delta contacts
+        final Set<String> contactsToNotify = Sets.symmetricDifference(trimedContacts, existingContactsBeforeClear);
+        contactService.sendNotificationToContacts(contactsToNotify, user);
 
         return new ImportResponse(true, message);
     }
