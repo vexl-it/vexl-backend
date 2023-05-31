@@ -67,11 +67,8 @@ subprojects {
         implementation("org.apache.pdfbox:pdfbox:2.0.26")
         implementation("io.micrometer:micrometer-registry-prometheus:1.10.3")
 
-        if(name != "crypto") {
+        if(name != "crypto" && name != "constants") {
             implementation(project(":common:crypto"))
-        }
-
-        if(name != "constants") {
             implementation(project(":common:constants"))
         }
 
