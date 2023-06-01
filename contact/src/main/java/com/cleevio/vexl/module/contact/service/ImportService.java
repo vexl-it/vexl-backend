@@ -61,11 +61,32 @@ public class ImportService {
 
         final Set<String> existingContacts = this.contactRepository.retrieveExistingContacts(user.getHash());
 
-        final Set<UserContact> contactsToAdd = Sets.difference(trimedContacts, existingContacts)
+        final List<UserContact> contactsToAdd = Sets.difference(trimedContacts, existingContacts)
                 .stream()
-                .map(c -> UserContact.builder().hashFrom(user.getHash()).hashTo(c).build())
-                .collect(Collectors.toSet());
+                .map(c -> UserContact.builder().hashFrom(user.getHash()).hashTo(c).build()).toList();
         final Set<String> hashesToRemove = Sets.difference(existingContacts, trimedContacts);
+
+
+        // print contents of trimedContacts to Log.info
+        for (String hash : trimedContacts) {
+            log.info("trimedContact: {}", hash);
+        }
+        // print contents of contactsToAdd to Log.info
+        for (UserContact contact : contactsToAdd) {
+            log.info("contactToAdd: {}", contact);
+        }
+        // print contents of hashesToRemove to Log.info
+        for (String hash : hashesToRemove) {
+            log.info("hashToRemove: {}", hash);
+        }
+        // print contentsOf existingContacts to Log.info
+        for (String hash : existingContacts) {
+            log.info("existingContact: {}", hash);
+        }
+        // print contents of existingContactsBeforeClear to Log.info
+        for (String hash : existingContactsBeforeClear) {
+            log.info("existingContactBeforeClear: {}", hash);
+        }
 
         contactRepository.saveAll(contactsToAdd);
         contactRepository.deleteContactsByHashes(user.getHash(), hashesToRemove);
