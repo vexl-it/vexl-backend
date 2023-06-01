@@ -56,7 +56,7 @@ public class ImportService {
         final Set<String> trimedContacts = importRequest.contacts()
                 .stream()
                 .map(String::trim)
-                .filter(c -> !c.equals(user.getHash()))
+                .filter(c -> !c.equals(user.getHash().replace("next:", "")))
                 .collect(Collectors.toSet());
 
         final Set<String> existingContacts = this.contactRepository.retrieveExistingContacts(user.getHash());
