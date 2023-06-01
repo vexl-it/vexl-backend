@@ -1,13 +1,14 @@
 package com.cleevio.vexl.common.security.filter;
 
-import com.cleevio.vexl.common.dto.ErrorResponse;
 import com.cleevio.vexl.common.constant.RoleEnum;
+import com.cleevio.vexl.common.dto.ErrorResponse;
 import com.cleevio.vexl.common.security.AuthenticationHolder;
 import com.cleevio.vexl.common.service.SignatureService;
 import com.cleevio.vexl.common.service.query.CheckSignatureValidityQuery;
 import com.cleevio.vexl.common.util.NumberUtils;
 import com.cleevio.vexl.module.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.vexl.common.constants.ClientVersion;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -57,8 +58,10 @@ public class SecurityFilter extends OncePerRequestFilter {
             if (signatureService.isSignatureValid(new CheckSignatureValidityQuery(publicKey, hash, signature), cryptoVersion)) {
                 AuthenticationHolder authenticationHolder;
 
-                if (userService.existsByPublicKeyAndHash(publicKey, hash)) {
-                    authenticationHolder = new AuthenticationHolder(userService.findByPublicKeyAndHash(publicKey, hash).get(),
+                final String hashWithPrefix = ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, request.getHeader(ClientVersion.CLIENT_VERSION_HEADER));
+
+                if (userService.existsByPublicKeyAndHash(publicKey, hashWithPrefix)) {
+                    authenticationHolder = new AuthenticationHolder(userService.findByPublicKeyAndHash(publicKey, hashWithPrefix).get(),
                             List.of(new SimpleGrantedAuthority(RoleEnum.ROLE_USER.name())));
                     authenticationHolder.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 } else {
