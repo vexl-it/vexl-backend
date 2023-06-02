@@ -165,11 +165,22 @@ public class ContactService {
         if (importedHashes.isEmpty()) {
             return;
         }
+
+        log.info("Running retrieveFirebaseTokensByHashes");
         final Set<String> firebaseTokens = retrieveFirebaseTokensByHashes(importedHashes, user.getHash());
         if (firebaseTokens.isEmpty()) {
+            log.info("Returning firebaseTokens is empty");
             return;
         }
+
+        log.info("Running retrieveSecondDegreeFirebaseTokensByHashes");
         final Set<String> firebaseTokensSecondDegrees = retrieveSecondDegreeFirebaseTokensByHashes(importedHashes, user.getHash(), firebaseTokens);
+
+        log.info("Sending notification from {} to {} contacts and {} second degree contacts",
+                user.getHash(),
+                firebaseTokens.size(),
+                firebaseTokensSecondDegrees.size());
+
         applicationEventPublisher.publishEvent(new ContactsImportedEvent(firebaseTokens, firebaseTokensSecondDegrees, user.getPublicKey()));
     }
 
