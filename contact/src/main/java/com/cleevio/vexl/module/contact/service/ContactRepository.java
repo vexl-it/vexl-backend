@@ -98,7 +98,7 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
     @Query("""
             select distinct u from User u 
             JOIN UserContact uc on u.hash = uc.hashFrom 
-            where u.firebaseToken is not null and uc.hashTo = :newUserHash
+            where u.firebaseToken is not null and :newUserHash in (uc.hashTo, concat('next:', uc.hashTo))
             """)
     Set<User> retrieveFirebaseTokensByHashes(String newUserHash);
 
