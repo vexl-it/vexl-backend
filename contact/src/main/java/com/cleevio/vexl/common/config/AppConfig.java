@@ -1,10 +1,13 @@
 package com.cleevio.vexl.common.config;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
@@ -16,10 +19,15 @@ import java.util.Collections;
 import java.util.TimeZone;
 
 @Configuration
+@Slf4j
 @EnableScheduling
 @EnableAsync
 @ComponentScan(basePackages = "com.cleevio")
 public class AppConfig {
+
+    @Value("${new-user-notification.max-parallel-tasks:8}")
+    private int coreThreadsForNewUserNotificationsExecutor;
+
     @Bean
     public CorsFilter corsFilter() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -50,5 +58,23 @@ public class AppConfig {
     @Bean
     public WebClient webClient() {
         return WebClient.create();
+    }
+
+    @Bean(name = "sendNotificationToContactsExecutor")
+    public ThreadPoolTaskExecutor sendNotificationToContactsExecutor() {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+
+        threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+        threadPoolTaskExecutor.setKeepAliveSeconds(60);
+
+        log.info("Setting coreThreads for NewUserNotificationsExecutor to {}", coreThreadsForNewUserNotificationsExecutor);
+
+        threadPoolTaskExecutor.setCorePoolSize(coreThreadsForNewUserNotificationsExecutor);
+        threadPoolTaskExecutor.setMaxPoolSize(coreThreadsForNewUserNotificationsExecutor);
+
+        threadPoolTaskExecutor.setThreadNamePrefix("new-user-notification");
+
+        threadPoolTaskExecutor.initialize();
+        return threadPoolTaskExecutor;
     }
 }
