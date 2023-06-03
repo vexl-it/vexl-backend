@@ -159,12 +159,14 @@ public class ContactService {
     /**
      * Send a notification to all existing contacts, so they can encrypt their Offers for a new user.
      */
-    @Async
+    @Async("sendNotificationToContactsExecutor")
     @Transactional(readOnly = true)
     public void sendNotificationToContacts(final Set<String> importedHashes, final User user) {
         if (importedHashes.isEmpty()) {
             return;
         }
+
+        long start = System.currentTimeMillis();
 
         log.info("Running retrieveFirebaseTokensByHashes");
         final Set<String> firebaseTokens = retrieveFirebaseTokensByHashes(importedHashes, user.getHash());
@@ -181,6 +183,7 @@ public class ContactService {
                 firebaseTokens.size(),
                 firebaseTokensSecondDegrees.size());
 
+        log.info("FCM tokens for contacts took {} s", (System.currentTimeMillis() - start) / 1000);
         applicationEventPublisher.publishEvent(new ContactsImportedEvent(firebaseTokens, firebaseTokensSecondDegrees, user.getPublicKey()));
     }
 
