@@ -41,6 +41,15 @@ public class FirebaseService implements NotificationService {
             if (Platform.IOS.equals(dto.platform())) {
                 messageBuilder.setNotification(Notification.builder().setTitle(dto.title()).setBody(dto.text()).build());
             }
+
+            if(Platform.ANDROID.equals(dto.platform())) {
+                messageBuilder.setAndroidConfig(
+                        AndroidConfig.builder()
+                                .setPriority(AndroidConfig.Priority.HIGH)
+                                .build()
+                );
+            }
+
             messageBuilder.setToken(dto.token());
             messageBuilder.putData(TITLE, dto.title());
             messageBuilder.putData(BODY, dto.text());
