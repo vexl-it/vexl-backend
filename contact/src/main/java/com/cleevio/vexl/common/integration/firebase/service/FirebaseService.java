@@ -12,12 +12,7 @@ import com.cleevio.vexl.module.contact.constant.ConnectionLevel;
 import com.cleevio.vexl.module.push.dto.PushNotification;
 import com.cleevio.vexl.module.user.constant.Platform;
 import com.cleevio.vexl.module.user.dto.InactivityNotificationDto;
-import com.google.firebase.messaging.ApnsConfig;
-import com.google.firebase.messaging.Aps;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -63,6 +58,16 @@ public class FirebaseService implements NotificationService, DeeplinkService {
                 if (Platform.IOS.equals(dto.getPlatform())) {
                     messageBuilder.setNotification(Notification.builder().setTitle(dto.getTitle()).setBody(dto.getBody()).build());
                 }
+
+
+                if(Platform.ANDROID.equals(dto.getPlatform())) {
+                    messageBuilder.setAndroidConfig(
+                            AndroidConfig.builder()
+                                    .setPriority(AndroidConfig.Priority.HIGH)
+                                    .build()
+                    );
+                }
+
                 messageBuilder.setToken(dto.getFirebaseToken());
                 messageBuilder.putData(TITLE, dto.getTitle());
                 messageBuilder.putData(BODY, dto.getBody());
@@ -117,6 +122,13 @@ public class FirebaseService implements NotificationService, DeeplinkService {
                     .build();
 
             messageBuilder.setApnsConfig(apnsConfig);
+
+
+            messageBuilder.setAndroidConfig(
+                    AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .build()
+            );
 
             messageBuilder.setToken(firebaseToken);
             if (push.groupUuid() != null) {
