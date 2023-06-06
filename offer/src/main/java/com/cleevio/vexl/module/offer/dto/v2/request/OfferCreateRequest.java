@@ -20,7 +20,9 @@ public record OfferCreateRequest(
 
         @Valid
         @NotEmpty
-        List<@NotNull OfferPrivateCreate> offerPrivateList
+        List<@NotNull OfferPrivateCreate> offerPrivateList,
 
+        @Nullable
+        Integer countryPrefix
 ) {
 }

@@ -39,7 +39,7 @@ public class UserService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public User prepareUser(String publicKey) {
+    public User prepareUser(String publicKey, int countryPrefix) {
         advisoryLockService.lock(
                 ModuleLockNamespace.USER,
                 UserAdvisoryLock.PREPARE_USER.name(),
@@ -52,6 +52,7 @@ public class UserService {
 
         final User user = User.builder()
                 .publicKey(publicKey)
+                .countryPrefix(countryPrefix)
                 .build();
 
         final User savedUser = this.userRepository.save(user);
@@ -95,7 +96,8 @@ public class UserService {
                 user.getPublicKey(),
                 user.getUserVerification().getPhoneNumber(),
                 user.getUserVerification().getChallenge(),
-                request.signature()
+                request.signature(),
+                user.getCountryPrefix()
         );
     }
 

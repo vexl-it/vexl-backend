@@ -36,4 +36,5 @@ public class User {
     @OneToOne(mappedBy = "user")
     private UserVerification userVerification;
 
+    private Integer countryPrefix;
 }

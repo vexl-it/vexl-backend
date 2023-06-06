@@ -136,6 +136,7 @@ public class OfferService {
                 .refreshedAt(LocalDate.now())
                 .modifiedAt(LocalDate.now())
                 .payloadPublic(request.payloadPublic())
+                .countryPrefix(request.countryPrefix())
                 .build();
 
         final OfferPublicPart savedPublicPart = this.offerPublicRepository.save(offerPublicPart);
