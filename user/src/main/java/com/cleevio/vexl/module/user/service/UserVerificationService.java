@@ -94,7 +94,8 @@ public class UserVerificationService {
                         CryptoLibrary.instance.hmacDigest(
                                 this.secretKey.hmacKey(),
                                 formattedNumber
-                        )
+                        ),
+                        PhoneUtils.getCountryPrefix(formattedNumber)
                 );
 
         final UserVerification savedVerification = this.userVerificationRepository.save(userVerification);
@@ -138,7 +139,9 @@ public class UserVerificationService {
             userVerification.setChallenge(challenge);
             userVerification.setPhoneVerified(true);
             userVerification.setUser(
-                    this.userService.prepareUser(codeConfirmRequest.userPublicKey()));
+                    this.userService.prepareUser(codeConfirmRequest.userPublicKey(),
+                            userVerification.getCountryPrefix())
+            );
 
             return this.userVerificationRepository.save(userVerification);
         } catch (NoSuchAlgorithmException exception) {
@@ -152,12 +155,13 @@ public class UserVerificationService {
         this.userVerificationRepository.deleteExpiredVerifications(ZonedDateTime.now().minusSeconds(10));
     }
 
-    private UserVerification createUserVerification(String codeToSend, String verificationSid, String phoneNumber) {
+    private UserVerification createUserVerification(String codeToSend, String verificationSid, String phoneNumber, int countryPrefix) {
         return UserVerification.builder()
                 .verificationCode(codeToSend)
                 .verificationSid(verificationSid)
                 .expirationAt(ZonedDateTime.now().plusSeconds(this.expirationTime))
                 .phoneNumber(phoneNumber)
+                .countryPrefix(countryPrefix)
                 .build();
     }
 

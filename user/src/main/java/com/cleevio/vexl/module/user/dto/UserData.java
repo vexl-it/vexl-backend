@@ -14,7 +14,9 @@ public record UserData(
         String challenge,
 
         @NotBlank
-        String signature
+        String signature,
+
+        int countryPrefix
 
 ) {
 }

@@ -56,4 +56,13 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="add_country_prefix" author="davenov">
+        <addColumn tableName="user_verification">
+            <column name="country_prefix" type="integer">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+
 </databaseChangeLog>

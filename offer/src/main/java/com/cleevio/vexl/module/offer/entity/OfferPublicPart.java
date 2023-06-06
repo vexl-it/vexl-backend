@@ -68,6 +68,8 @@ public class OfferPublicPart {
     @ToString.Exclude
     private int report;
 
+    private Integer countryPrefix;
+
     @ToString.Exclude
     private String payloadPublic;
 
