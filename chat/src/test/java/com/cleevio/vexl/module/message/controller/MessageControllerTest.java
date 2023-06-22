@@ -89,7 +89,7 @@ public class MessageControllerTest extends BaseControllerTest {
     void testRetrieveMessages_validInput_shouldReturn200() {
         final var messages = List.of(MESSAGE);
         when(inboxService.findInbox(INBOX_PUBLIC_KEY)).thenReturn(INBOX);
-        when(messageService.retrieveMessages(INBOX)).thenReturn(messages);
+        when(messageService.retrieveMessages(INBOX, 0)).thenReturn(messages);
         when(messageMapper.mapList(messages)).thenReturn(List.of(MESSAGE_RESPONSE));
 
         mvc.perform(put(DEFAULT_EP)

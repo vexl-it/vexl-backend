@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -74,12 +75,15 @@ public class MessageController {
             First you need to retrieve challenge for verification in challenge API. Then sign it with private key and the signature send here.
             """)
     MessagesResponse retrieveMessages(@Valid @RequestBody MessageRequest request,
-                                      @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                                      @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                                      @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") final String clientVersionRaw) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
+        final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
+
         challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.publicKey(), request.signedChallenge()), cryptoVersion);
 
         Inbox inbox = this.inboxService.findInbox(request.publicKey());
-        List<Message> messages = this.messageService.retrieveMessages(inbox);
+        List<Message> messages = this.messageService.retrieveMessages(inbox, clientVersion);
         return new MessagesResponse(messageMapper.mapList(messages));
     }
 
