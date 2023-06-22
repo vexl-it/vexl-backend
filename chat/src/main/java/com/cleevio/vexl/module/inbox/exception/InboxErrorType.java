@@ -16,6 +16,8 @@ public enum InboxErrorType implements ErrorType {
             " They will get on the whitelist if you confirm it via approval EP."),
     ALREADY_APPROVED("153", "You cannot approve or disapprove one user twice. If you blocked the user before, use unblock EP. " +
             "If you disapprove the user before, you can not take it back."),
+
+    REQUEST_CANCELLED("106", "Request has been canceled by the other side. You can not accept canceled request."),
     ;
 
     /**

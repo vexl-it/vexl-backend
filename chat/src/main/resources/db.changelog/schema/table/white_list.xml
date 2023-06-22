@@ -48,4 +48,12 @@
             <column name="public_key"/>
         </createIndex>
     </changeSet>
+
+    <changeSet id="add_date" author="davenov">
+        <addColumn tableName="white_list">
+            <column name="date" type="date" defaultValueComputed="CURRENT_DATE">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

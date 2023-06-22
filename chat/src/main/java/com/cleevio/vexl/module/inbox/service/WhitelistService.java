@@ -1,10 +1,11 @@
 package com.cleevio.vexl.module.inbox.service;
 
+import com.cleevio.vexl.module.inbox.constant.WhitelistState;
 import com.cleevio.vexl.module.inbox.dto.request.BlockInboxRequest;
 import com.cleevio.vexl.module.inbox.entity.Inbox;
 import com.cleevio.vexl.module.inbox.entity.Whitelist;
-import com.cleevio.vexl.module.inbox.constant.WhitelistState;
 import com.cleevio.vexl.module.inbox.exception.AlreadyApprovedException;
+import com.cleevio.vexl.module.inbox.exception.RequestCancelledException;
 import com.cleevio.vexl.module.inbox.exception.WhitelistMissingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,9 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 
 @Slf4j
@@ -22,6 +25,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 public class WhitelistService {
+    private static final int REQUEST_TIMEOUT_DAYS = 1;
 
     private final WhitelistRepository whitelistRepository;
 
@@ -37,7 +41,29 @@ public class WhitelistService {
     }
 
     public boolean isSenderInWhitelist(String publicKeySenderHash, Inbox receiverInbox) {
-        return this.whitelistRepository.isSenderInWhitelist(publicKeySenderHash, receiverInbox);
+        final Optional<Whitelist> whitelistRecordOptional = this.whitelistRepository.findOnWhitelist(receiverInbox, publicKeySenderHash);
+        if(whitelistRecordOptional.isEmpty()) return false;
+        Whitelist whitelistRecord = whitelistRecordOptional.get();
+
+        if(whitelistRecord.getState().equals(WhitelistState.WAITING) || whitelistRecord.getState().equals(WhitelistState.CANCELED)) {
+            LocalDate canRequestAgainFrom = whitelistRecord.getDate().plusDays(REQUEST_TIMEOUT_DAYS);
+            LocalDate now = LocalDate.now();
+            return now.equals(canRequestAgainFrom) || now.isAfter(canRequestAgainFrom);
+        }
+        return true;
+    }
+
+    public void cancelSenderRequest(String publicKeySenderHash, Inbox receiverInbox) {
+        Whitelist whitelistRecord = this.whitelistRepository
+                .findOnWhitelist(receiverInbox, publicKeySenderHash)
+                .orElseThrow(WhitelistMissingException::new);
+
+        if(!whitelistRecord.getState().equals(WhitelistState.WAITING)) {
+            throw new AlreadyApprovedException();
+        }
+
+        whitelistRecord.setState(WhitelistState.CANCELED);
+        whitelistRepository.save(whitelistRecord);
     }
 
     @Transactional
@@ -47,16 +73,30 @@ public class WhitelistService {
         whitelist.setState(WhitelistState.APPROVED);
         this.whitelistRepository.save(whitelist);
 
-        createWhiteListEntity(requesterInbox, senderPublicKey, WhitelistState.APPROVED);
+        createWhiteListEntity(requesterInbox, senderPublicKey, WhitelistState.APPROVED, LocalDate.now());
         log.info("New public key [{}] was successfully saved into whitelist for inbox [{}]", publicKeyToConfirm, inbox);
     }
 
     @Transactional
-    public void createWhiteListEntity(Inbox inbox, String publicKey, WhitelistState state) {
+    public void upsertSenderEntity(Inbox inbox, String publicKey, WhitelistState state, LocalDate date) {
+        var whitelistEntityOptional = whitelistRepository.findOnWhitelist(inbox, publicKey);
+        if(whitelistEntityOptional.isEmpty()) {
+            createWhiteListEntity(inbox, publicKey, state, date);
+            return;
+        }
+        Whitelist whitelistEntity = whitelistEntityOptional.get();
+        whitelistEntity.setState(state);
+        whitelistEntity.setDate(date);
+        this.whitelistRepository.save(whitelistEntity);
+    }
+
+    @Transactional
+    public void createWhiteListEntity(Inbox inbox, String publicKey, WhitelistState state, LocalDate date) {
         Whitelist whitelist = Whitelist.builder()
                 .publicKey(publicKey)
                 .state(state)
                 .inbox(inbox)
+                .date(date)
                 .build();
         this.whitelistRepository.save(whitelist);
     }
@@ -77,7 +117,23 @@ public class WhitelistService {
     }
 
     private Whitelist findWaitingWhitelistByInboxAndPublicKey(Inbox inbox, String publicKey) {
-        return this.whitelistRepository.findByPublicKey(inbox, publicKey, WhitelistState.WAITING)
+        var whitelistEntity = this.whitelistRepository.findOnWhitelist(inbox, publicKey)
                 .orElseThrow(AlreadyApprovedException::new);
+
+        switch (whitelistEntity.getState()) {
+            case WAITING -> {
+                return whitelistEntity;
+            }
+            case APPROVED -> {
+                throw new AlreadyApprovedException();
+            }
+            case CANCELED -> {
+                throw new RequestCancelledException();
+            }
+            case BLOCKED -> {
+                throw new WhitelistMissingException();
+            }
+            default -> throw new WhitelistMissingException();
+        }
     }
 }

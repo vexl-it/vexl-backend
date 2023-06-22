@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -38,6 +39,8 @@ import static com.cleevio.vexl.module.stats.constant.StatsKey.MESSAGES_NOT_PULLE
 @RequiredArgsConstructor
 public class MessageService {
 
+    private static final int MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING = 43;
+
     private final MessageRepository messageRepository;
     private final WhitelistService whitelistService;
     private final InboxService inboxService;
@@ -46,7 +49,7 @@ public class MessageService {
     private final AdvisoryLockService advisoryLockService;
 
     @Transactional
-    public List<Message> retrieveMessages(Inbox inbox) {
+    public List<Message> retrieveMessages(Inbox inbox, int clientVersion) {
         advisoryLockService.lock(
                 ModuleLockNamespace.MESSAGE,
                 MessageAdvisoryLock.RETRIEVE_MESSAGE.name(),
@@ -62,6 +65,12 @@ public class MessageService {
             m.setPulled(true);
             this.messageRepository.save(m);
         });
+
+        if(clientVersion < MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING) {
+            messages = messages.stream()
+                    .filter(m -> m.getType() != MessageType.CANCEL_REQUEST_MESSAGING)
+                    .toList();
+        }
 
         return messages;
     }
@@ -117,7 +126,7 @@ public class MessageService {
             throw new WhiteListException();
         }
 
-        return this.saveMessageToInboxAndSendNotification(query);
+        return this.saveMessageToInboxAndSendNotification(query, true);
     }
 
     @Transactional
@@ -135,10 +144,24 @@ public class MessageService {
             throw new RequestMessagingNotAllowedException();
         }
 
-        this.whitelistService.createWhiteListEntity(query.receiverInbox(), query.senderPublicKey(), WhitelistState.WAITING);
+        this.whitelistService.upsertSenderEntity(query.receiverInbox(), query.senderPublicKey(), WhitelistState.WAITING, LocalDate.now());
 
-        return this.saveMessageToInboxAndSendNotification(query);
+        return this.saveMessageToInboxAndSendNotification(query, true);
     }
+    @Transactional
+    public Message sendCancelRequestToPermission(@Valid SendMessageToInboxQuery query) {
+        advisoryLockService.lock(
+                ModuleLockNamespace.MESSAGE,
+                MessageAdvisoryLock.SEND_MESSAGE.name(),
+                query.receiverPublicKey(), query.senderPublicKey()
+        );
+
+        this.whitelistService.cancelSenderRequest(query.senderPublicKey(), query.receiverInbox());
+
+        return this.saveMessageToInboxAndSendNotification(query, false);
+    }
+
+
 
     @Transactional
     public Message sendDisapprovalMessage(@Valid SendMessageToInboxQuery query) {
@@ -148,7 +171,7 @@ public class MessageService {
                 query.receiverPublicKey(), query.senderPublicKey()
         );
 
-        return this.saveMessageToInboxAndSendNotification(query);
+        return this.saveMessageToInboxAndSendNotification(query, true);
     }
 
     @Transactional
@@ -216,12 +239,12 @@ public class MessageService {
         );
     }
 
-    private Message saveMessageToInboxAndSendNotification(SendMessageToInboxQuery query) {
+    private Message saveMessageToInboxAndSendNotification(SendMessageToInboxQuery query, boolean sendNotification) {
 
         final Message messageEntity = createMessageEntity(query.senderPublicKey(), query.receiverInbox(), query.message(), query.messageType());
         final Message savedMessage = this.messageRepository.save(messageEntity);
 
-        if (query.receiverInbox().getToken() != null) {
+        if (sendNotification && query.receiverInbox().getToken() != null) {
             this.applicationEventPublisher.publishEvent(
                     new NewMessageReceivedEvent(
                             query.receiverInbox().getToken(),

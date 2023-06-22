@@ -74,7 +74,7 @@ class MessageServiceTest {
 
     @Test
     void retrieveMessages_shouldReceiveMessages() {
-        List<Message> messages = this.messageService.retrieveMessages(INBOX);
+        List<Message> messages = this.messageService.retrieveMessages(INBOX, 0);
         assertThat(messages).hasSize(3);
         assertThat(messages.get(0).isPulled()).isEqualTo(true);
         assertThat(messages.get(1).isPulled()).isEqualTo(true);

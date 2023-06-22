@@ -21,6 +21,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.time.LocalDate;
 
 @Table(name = "white_list")
 @Entity
@@ -45,6 +46,9 @@ public class Whitelist {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private WhitelistState state;
+
+    @Column(nullable = false)
+    private LocalDate date;
 
     @JoinColumn(name = "inbox_id", nullable = false)
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
