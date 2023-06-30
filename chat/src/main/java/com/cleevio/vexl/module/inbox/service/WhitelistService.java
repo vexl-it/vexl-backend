@@ -112,9 +112,16 @@ public class WhitelistService {
     }
 
     @Transactional
-    public void deleteFromWhiteList(Inbox inbox, String publicKey) {
+    public void deletePendingFromWhiteList(Inbox inbox, String publicKey) {
         this.whitelistRepository.delete(this.findWaitingWhitelistByInboxAndPublicKey(inbox, publicKey));
     }
+
+    @Transactional
+    public void deleteFromWhiteList(Inbox inbox, String publicKey) {
+        this.whitelistRepository.findOnWhitelist(inbox, publicKey)
+                .ifPresent(this.whitelistRepository::delete);
+    }
+
 
     private Whitelist findWaitingWhitelistByInboxAndPublicKey(Inbox inbox, String publicKey) {
         var whitelistEntity = this.whitelistRepository.findOnWhitelist(inbox, publicKey)
