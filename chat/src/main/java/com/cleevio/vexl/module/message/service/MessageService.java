@@ -4,6 +4,8 @@ import com.cleevio.vexl.common.constant.ModuleLockNamespace;
 import com.cleevio.vexl.common.service.AdvisoryLockService;
 import com.cleevio.vexl.module.challenge.service.ChallengeService;
 import com.cleevio.vexl.module.challenge.service.query.VerifySignedChallengeQuery;
+import com.cleevio.vexl.module.inbox.dto.request.LeaveChatRequest;
+import com.cleevio.vexl.module.inbox.exception.WhitelistMissingException;
 import com.cleevio.vexl.module.inbox.service.InboxService;
 import com.cleevio.vexl.module.message.constant.MessageAdvisoryLock;
 import com.cleevio.vexl.module.message.dto.request.SendMessageBatchRequest;
@@ -162,6 +164,34 @@ public class MessageService {
     }
 
 
+    @Transactional
+    public Message sendLeaveChat(@Valid LeaveChatRequest leaveChatRequest) {
+        advisoryLockService.lock(
+                ModuleLockNamespace.MESSAGE,
+                MessageAdvisoryLock.SEND_MESSAGE.name(),
+                leaveChatRequest.receiverPublicKey(), leaveChatRequest.senderPublicKey()
+        );
+
+        Inbox receiverInbox = this.inboxService.findInbox(leaveChatRequest.receiverPublicKey());
+
+        if(!this.whitelistService.isSenderInWhitelist(leaveChatRequest.senderPublicKey(), receiverInbox)) {
+            log.warn("Sender [{}] does not have permissions to chat with [{}]",
+                    leaveChatRequest.senderPublicKey(),
+                    receiverInbox);
+            throw new WhitelistMissingException(); // TODO change
+        }
+
+        this.whitelistService.deleteFromWhiteList(receiverInbox, leaveChatRequest.senderPublicKey());
+
+        return this.saveMessageToInboxAndSendNotification(new SendMessageToInboxQuery(
+                leaveChatRequest.senderPublicKey(),
+                leaveChatRequest.receiverPublicKey(),
+                receiverInbox,
+                leaveChatRequest.message(),
+                MessageType.DELETE_CHAT
+        ), true);
+
+    }
 
     @Transactional
     public Message sendDisapprovalMessage(@Valid SendMessageToInboxQuery query) {

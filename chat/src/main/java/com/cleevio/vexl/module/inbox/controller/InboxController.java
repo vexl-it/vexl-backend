@@ -13,6 +13,7 @@ import com.cleevio.vexl.module.inbox.service.InboxService;
 import com.cleevio.vexl.module.inbox.service.WhitelistService;
 import com.cleevio.vexl.module.message.constant.MessageType;
 import com.cleevio.vexl.module.message.dto.response.MessagesResponse;
+import com.cleevio.vexl.module.message.entity.Message;
 import com.cleevio.vexl.module.message.mapper.MessageMapper;
 import com.cleevio.vexl.module.message.service.MessageService;
 import com.cleevio.vexl.module.message.service.query.SendMessageToInboxQuery;
@@ -164,7 +165,7 @@ public class InboxController {
         Inbox requesterInbox = this.inboxService.findInbox(request.publicKeyToConfirm());
         Inbox inbox = this.inboxService.findInbox(request.publicKey());
         if (!request.approve()) {
-            this.whitelistService.deleteFromWhiteList(inbox, request.publicKeyToConfirm());
+            this.whitelistService.deletePendingFromWhiteList(inbox, request.publicKeyToConfirm());
             return messageMapper.mapSingle(
                     this.messageService.sendDisapprovalMessage(
                             new SendMessageToInboxQuery(
@@ -192,6 +193,23 @@ public class InboxController {
         }
     }
 
+    @PostMapping("/leave-chat")
+    @SecurityRequirements({
+            @SecurityRequirement(name = SecurityFilter.HEADER_PUBLIC_KEY),
+            @SecurityRequirement(name = SecurityFilter.HEADER_HASH),
+            @SecurityRequirement(name = SecurityFilter.HEADER_SIGNATURE),
+    })
+    @ApiResponse(responseCode = "404 (100104)", description = "You are not joined to this chat. Either there was no chat open or one side has already left", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Leave chat and remove any traces of relationship between you and the other side",
+            description = "After calling this. New request will need to be sent in case of wanting to chat again.")
+    MessagesResponse.MessageResponse leaveChat(@Valid @RequestBody LeaveChatRequest request,
+                      @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+        final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
+        challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.senderPublicKey(), request.signedChallenge()), cryptoVersion);
+
+        return messageMapper.mapSingle(messageService.sendLeaveChat(request));
+    }
     @DeleteMapping("/messages")
     @SecurityRequirements({
             @SecurityRequirement(name = SecurityFilter.HEADER_PUBLIC_KEY),
