@@ -174,7 +174,7 @@ public class MessageService {
 
         Inbox receiverInbox = this.inboxService.findInbox(leaveChatRequest.receiverPublicKey());
 
-        if(!this.whitelistService.isSenderInWhitelist(leaveChatRequest.senderPublicKey(), receiverInbox)) {
+        if(!this.whitelistService.isSenderInWhitelistApproved(leaveChatRequest.senderPublicKey(), receiverInbox)) {
             log.warn("Sender [{}] does not have permissions to chat with [{}]",
                     leaveChatRequest.senderPublicKey(),
                     receiverInbox);

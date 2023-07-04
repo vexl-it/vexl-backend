@@ -9,6 +9,7 @@ import com.cleevio.vexl.module.inbox.exception.RequestCancelledException;
 import com.cleevio.vexl.module.inbox.exception.WhitelistMissingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +26,9 @@ import java.util.Optional;
 @Validated
 @RequiredArgsConstructor
 public class WhitelistService {
-    private static final int REQUEST_TIMEOUT_DAYS = 1;
+
+    @Value("${whitelist.chat_request_timeout_days}")
+    private int REQUEST_TIMEOUT_DAYS;
 
     private final WhitelistRepository whitelistRepository;
 
@@ -45,11 +48,15 @@ public class WhitelistService {
         if(whitelistRecordOptional.isEmpty()) return false;
         Whitelist whitelistRecord = whitelistRecordOptional.get();
 
+        // If request is pending or cancelled, check if timeout was reached
         if(whitelistRecord.getState().equals(WhitelistState.WAITING) || whitelistRecord.getState().equals(WhitelistState.CANCELED)) {
             LocalDate canRequestAgainFrom = whitelistRecord.getDate().plusDays(REQUEST_TIMEOUT_DAYS);
             LocalDate now = LocalDate.now();
-            return now.equals(canRequestAgainFrom) || now.isAfter(canRequestAgainFrom);
+
+            return now.isBefore(canRequestAgainFrom);
         }
+
+        // For all other states of whitelist record, sender is in whitelist
         return true;
     }
 
