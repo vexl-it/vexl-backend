@@ -3,6 +3,7 @@ package com.cleevio.vexl.module.push.service;
 import com.cleevio.vexl.module.inbox.event.NewMessageReceivedEvent;
 import com.cleevio.vexl.module.push.dto.PushMessageDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -36,10 +37,18 @@ public class PushService {
                     notificationService.sendPushNotification(createPushMessageDto(event, "Disapproval reveal", "Request for reveal was disapprove."));
             case BLOCK_CHAT ->
                     notificationService.sendPushNotification(createPushMessageDto(event, "Chat blocked", "User blocked chat with you."));
+            case CANCEL_REQUEST_MESSAGING ->
+                    notificationService.sendPushNotification(createPushMessageDto(event, null, null));
         }
     }
 
-    private PushMessageDto createPushMessageDto(NewMessageReceivedEvent event, String title, String text) {
+    private PushMessageDto createPushMessageDto(
+            NewMessageReceivedEvent event,
+            @Nullable
+            String title,
+            @Nullable
+            String text
+    ) {
         return new PushMessageDto(
                 title,
                 text,
