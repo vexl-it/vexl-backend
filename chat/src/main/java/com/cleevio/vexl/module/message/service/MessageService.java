@@ -160,7 +160,7 @@ public class MessageService {
 
         this.whitelistService.cancelSenderRequest(query.senderPublicKey(), query.receiverInbox());
 
-        return this.saveMessageToInboxAndSendNotification(query, false);
+        return this.saveMessageToInboxAndSendNotification(query, true);
     }
 
 
