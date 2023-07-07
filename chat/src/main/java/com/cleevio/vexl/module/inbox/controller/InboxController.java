@@ -138,7 +138,7 @@ public class InboxController {
                                 request.publicKey(),
                                 receiverInbox,
                                 request.message(),
-                                MessageType.MESSAGE
+                                MessageType.CANCEL_REQUEST_MESSAGING // TODO backward compatibility - this might cause the old app to crash
                         )
 
                 )
