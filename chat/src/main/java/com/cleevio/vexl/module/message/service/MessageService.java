@@ -173,15 +173,19 @@ public class MessageService {
         );
 
         Inbox receiverInbox = this.inboxService.findInbox(leaveChatRequest.receiverPublicKey());
+        Inbox senderInbox = this.inboxService.findInbox(leaveChatRequest.senderPublicKey());
 
-        if(!this.whitelistService.isSenderInWhitelistApproved(leaveChatRequest.senderPublicKey(), receiverInbox)) {
+        if(
+                !this.whitelistService.isSenderInWhitelistApproved(leaveChatRequest.senderPublicKey(), receiverInbox)
+        ) {
             log.warn("Sender [{}] does not have permissions to chat with [{}]",
                     leaveChatRequest.senderPublicKey(),
                     receiverInbox);
-            throw new WhitelistMissingException(); // TODO change
+            throw new WhitelistMissingException();
         }
 
         this.whitelistService.deleteFromWhiteList(receiverInbox, leaveChatRequest.senderPublicKey());
+        this.whitelistService.deleteFromWhiteList(senderInbox, leaveChatRequest.receiverPublicKey());
 
         return this.saveMessageToInboxAndSendNotification(new SendMessageToInboxQuery(
                 leaveChatRequest.senderPublicKey(),
