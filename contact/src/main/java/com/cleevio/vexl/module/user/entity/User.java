@@ -42,6 +42,8 @@ public class User {
     @Nullable
     private String firebaseToken;
 
+    private int clientVersion;
+
     @Nullable
     private LocalDate refreshedAt;
 

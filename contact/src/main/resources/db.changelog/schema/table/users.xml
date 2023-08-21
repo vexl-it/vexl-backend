@@ -83,4 +83,13 @@
             <column name="firebase_token"/>
         </createIndex>
     </changeSet>
+
+
+    <changeSet id="add-client_version" author="davenov">
+        <addColumn tableName="users">
+            <column name="client_version" defaultValue="0" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

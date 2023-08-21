@@ -1,6 +1,7 @@
 package com.cleevio.vexl.module.user.controller;
 
 import com.cleevio.vexl.common.security.filter.SecurityFilter;
+import com.cleevio.vexl.common.util.NumberUtils;
 import com.cleevio.vexl.module.user.constant.Platform;
 import com.cleevio.vexl.module.user.dto.request.CreateUserRequest;
 import com.cleevio.vexl.module.user.dto.request.FirebaseTokenUpdateRequest;
@@ -47,13 +48,16 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_NEW_USER')")
     void createUser(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                     @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
-                    @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersion,
+                    @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersionRaw,
                     @RequestBody(required = false) @Nullable CreateUserRequest request) {
+
+        final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
 
         this.userService.createUser(
                 publicKey,
-                ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersion),
-                request == null ? new CreateUserRequest(null) : request
+                ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersionRaw),
+                request == null ? new CreateUserRequest(null) : request,
+                clientVersion
         );
     }
 
@@ -75,9 +79,11 @@ public class UserController {
     void refresh(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                  @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
                  @RequestHeader(name = SecurityFilter.X_PLATFORM) Platform platform,
-                 @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersion,
+                 @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersionRaw,
                  @RequestBody RefreshUserRequest request) {
-        this.userService.refreshUser(publicKey, ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersion), platform, request);
+
+        final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
+        this.userService.refreshUser(publicKey, ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersionRaw), platform, request, clientVersion);
     }
 
     @PutMapping
@@ -97,12 +103,15 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_USER')")
     void updateFirebaseToken(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                              @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
-                             @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersion,
+                             @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersionRaw,
                              @RequestBody FirebaseTokenUpdateRequest request) {
+        final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
+
         this.userService.updateFirebaseToken(
                 publicKey,
-                ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersion),
-                request
+                ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersionRaw),
+                request,
+                clientVersion
         );
     }
 

@@ -44,12 +44,12 @@ public class UserService {
     private final AdvisoryLockService advisoryLockService;
 
     @Transactional
-    public User createUser(final String publicKey, final String hash) {
-        return createUser(publicKey, hash, new CreateUserRequest(null));
+    public User createUser(final String publicKey, final String hash, final int clientVersion) {
+        return createUser(publicKey, hash, new CreateUserRequest(null), clientVersion);
     }
 
     @Transactional
-    public User createUser(final String publicKey, final String hash, @Valid CreateUserRequest request) {
+    public User createUser(final String publicKey, final String hash, @Valid CreateUserRequest request, final int clientVersion) {
         advisoryLockService.lock(
                 ModuleLockNamespace.USER,
                 UserAdvisoryLock.CREATE_USER.name(),
@@ -71,6 +71,7 @@ public class UserService {
                         .publicKey(publicKey)
                         .hash(hash)
                         .firebaseToken(request.firebaseToken())
+                        .clientVersion(clientVersion)
                         .refreshedAt(LocalDate.now())
                         .build()
         );
@@ -105,7 +106,7 @@ public class UserService {
     }
 
     @Transactional
-    public void updateFirebaseToken(final String publicKey, final String hash, @Valid final FirebaseTokenUpdateRequest request) {
+    public void updateFirebaseToken(final String publicKey, final String hash, @Valid final FirebaseTokenUpdateRequest request, int clientVersion) {
         advisoryLockService.lock(
                 ModuleLockNamespace.USER,
                 UserAdvisoryLock.UPDATE_USER.name(),
@@ -115,6 +116,7 @@ public class UserService {
         final User user = this.userRepository.findUserByPublicKeyAndHash(publicKey, hash)
                 .orElseThrow(UserNotFoundException::new);
         user.setFirebaseToken(request.firebaseToken());
+        user.setClientVersion(clientVersion);
     }
 
     @Transactional
@@ -146,11 +148,15 @@ public class UserService {
     }
 
     @Transactional
-    public void refreshUser(final String publicKey, final String hash,
-                            final Platform platform, @Valid final RefreshUserRequest request) {
+    public void refreshUser(final String publicKey,
+                            final String hash,
+                            final Platform platform,
+                            @Valid final RefreshUserRequest request,
+                            final int clientVersion) {
         User user = this.userRepository.findUserByPublicKeyAndHash(publicKey, hash)
                 .orElseThrow(UserNotFoundException::new);
         user.setRefreshedAt(request.offersAlive() ? LocalDate.now() : null);
+        user.setClientVersion(clientVersion);
         user.setPlatform(platform);
     }
 

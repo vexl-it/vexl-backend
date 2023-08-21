@@ -112,7 +112,7 @@ class InboxControllerTest extends BaseControllerTest {
     @Test
     @SneakyThrows
     void testUpdateInbox_validInput_shouldReturn202() {
-        when(inboxService.updateInbox(UPDATE_INBOX_REQUEST)).thenReturn(INBOX);
+        when(inboxService.updateInbox(UPDATE_INBOX_REQUEST, 0)).thenReturn(INBOX);
         when(inboxService.findInbox(INBOX_PUBLIC_KEY)).thenReturn(INBOX);
 
         mvc.perform(put(DEFAULT_EP)

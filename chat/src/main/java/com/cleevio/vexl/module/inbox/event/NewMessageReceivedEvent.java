@@ -11,6 +11,8 @@ public record NewMessageReceivedEvent(
         @NotBlank
         String token,
 
+        int clientVersion,
+
         @NotNull
         Platform platform,
 

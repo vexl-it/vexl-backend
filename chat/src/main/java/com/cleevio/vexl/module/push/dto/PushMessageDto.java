@@ -23,6 +23,7 @@ public record PushMessageDto (
         String text,
         String token,
         Platform platform,
+		int clientVersion,
 		MessageType messageType,
         String receiverPublicKey,
         String senderPublicKey

@@ -13,6 +13,7 @@ import com.cleevio.vexl.module.push.dto.PushNotification;
 import com.cleevio.vexl.module.user.constant.Platform;
 import com.cleevio.vexl.module.user.dto.InactivityNotificationDto;
 import com.google.firebase.messaging.*;
+import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,6 +43,8 @@ public class FirebaseService implements NotificationService, DeeplinkService {
     private static final String TITLE = "title";
     private static final String BODY = "body";
 
+    private static final String INACTIVITY_NOTIFICATION_TYPE = "INACTIVITY_REMINDER";
+
     @Override
     public void sendPushNotification(final PushNotification push) {
         push.membersFirebaseTokens().forEach(m -> processNotification(m, push, ConnectionLevel.FIRST));
@@ -55,22 +58,43 @@ public class FirebaseService implements NotificationService, DeeplinkService {
             try {
                 var messageBuilder = Message.builder();
 
-                if (Platform.IOS.equals(dto.getPlatform())) {
-                    messageBuilder.setNotification(Notification.builder().setTitle(dto.getTitle()).setBody(dto.getBody()).build());
-                }
+                boolean sendSystemNotification = dto.getClientVersion() < ClientVersion.DO_NOT_SENT_SYSTEM_NOTIFICATION_FROM_THIS_VERSION_ON;
 
 
-                if(Platform.ANDROID.equals(dto.getPlatform())) {
-                    messageBuilder.setAndroidConfig(
-                            AndroidConfig.builder()
-                                    .setPriority(AndroidConfig.Priority.HIGH)
-                                    .build()
-                    );
+                if(sendSystemNotification) {
+                    if (Platform.IOS.equals(dto.getPlatform())) {
+                        messageBuilder.setNotification(Notification.builder().setTitle(dto.getTitle()).setBody(dto.getBody()).build());
+                    }
+
+
+                    if (Platform.ANDROID.equals(dto.getPlatform())) {
+                        messageBuilder.setAndroidConfig(
+                                AndroidConfig.builder()
+                                        .setPriority(AndroidConfig.Priority.HIGH)
+                                        .build()
+                        );
+                    }
+
+                    messageBuilder.putData(TITLE, dto.getTitle());
+                    messageBuilder.putData(BODY, dto.getBody());
                 }
+
+                final ApnsConfig apnsConfig = ApnsConfig.builder()
+                        .setAps(Aps.builder()
+                                .setContentAvailable(true)
+                                .build())
+                        .build();
+
+                messageBuilder.setApnsConfig(apnsConfig);
+
+                messageBuilder.setAndroidConfig(
+                        AndroidConfig.builder()
+                                .setPriority(AndroidConfig.Priority.HIGH)
+                                .build()
+                );
 
                 messageBuilder.setToken(dto.getFirebaseToken());
-                messageBuilder.putData(TITLE, dto.getTitle());
-                messageBuilder.putData(BODY, dto.getBody());
+                messageBuilder.putData(TYPE, INACTIVITY_NOTIFICATION_TYPE);
 
                 final String response = FirebaseMessaging.getInstance().send(messageBuilder.build());
                 log.info("Sent message: " + response);

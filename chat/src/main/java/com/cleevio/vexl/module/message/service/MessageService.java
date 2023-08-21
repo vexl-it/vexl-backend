@@ -20,6 +20,7 @@ import com.cleevio.vexl.module.inbox.exception.WhiteListException;
 import com.cleevio.vexl.module.message.service.query.SendMessageToInboxQuery;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
+import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,9 +41,6 @@ import static com.cleevio.vexl.module.stats.constant.StatsKey.MESSAGES_NOT_PULLE
 @Service
 @RequiredArgsConstructor
 public class MessageService {
-
-    private static final int MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING = 43;
-
     private final MessageRepository messageRepository;
     private final WhitelistService whitelistService;
     private final InboxService inboxService;
@@ -68,7 +66,7 @@ public class MessageService {
             this.messageRepository.save(m);
         });
 
-        if(clientVersion < MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING) {
+        if(clientVersion < ClientVersion.MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING) {
             messages = messages.stream()
                     .filter(m -> m.getType() != MessageType.CANCEL_REQUEST_MESSAGING)
                     .toList();
@@ -282,6 +280,7 @@ public class MessageService {
             this.applicationEventPublisher.publishEvent(
                     new NewMessageReceivedEvent(
                             query.receiverInbox().getToken(),
+                            query.receiverInbox().getClientVersion(),
                             query.receiverInbox().getPlatform(),
                             query.messageType(),
                             query.receiverPublicKey(),
@@ -303,6 +302,7 @@ public class MessageService {
                 this.applicationEventPublisher.publishEvent(
                         new NewMessageReceivedEvent(
                                 query.receiverInbox().getToken(),
+                                query.receiverInbox().getClientVersion(),
                                 query.receiverInbox().getPlatform(),
                                 query.messageType(),
                                 query.receiverPublicKey(),

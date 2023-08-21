@@ -33,7 +33,7 @@ public class InboxService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public void createInbox(@Valid CreateInboxRequest request, @NotNull Platform platform) {
+    public void createInbox(@Valid CreateInboxRequest request, @NotNull Platform platform, int clientVersion) {
         advisoryLockService.lock(
                 ModuleLockNamespace.INBOX,
                 InboxAdvisoryLock.CREATE_INBOX.name(),
@@ -47,7 +47,7 @@ public class InboxService {
             return;
         }
 
-        final Inbox inbox = createInboxEntity(request, request.publicKey(), platform);
+        final Inbox inbox = createInboxEntity(request, request.publicKey(), platform, clientVersion);
         final Inbox savedInbox = this.inboxRepository.save(inbox);
         log.info("New inbox has been created with [{}]", savedInbox);
     }
@@ -79,7 +79,7 @@ public class InboxService {
     }
 
     @Transactional
-    public Inbox updateInbox(@Valid final UpdateInboxRequest request) {
+    public Inbox updateInbox(@Valid final UpdateInboxRequest request, final int clientVersion) {
         advisoryLockService.lock(
                 ModuleLockNamespace.INBOX,
                 InboxAdvisoryLock.MODIFYING_INBOX.name(),
@@ -88,6 +88,8 @@ public class InboxService {
         Inbox inbox = findInbox(request.publicKey());
 
         inbox.setToken(request.token());
+        inbox.setClientVersion(clientVersion);
+
         return this.inboxRepository.save(inbox);
     }
 
@@ -103,9 +105,10 @@ public class InboxService {
     }
 
     private Inbox createInboxEntity(CreateInboxRequest request, String publicKeyHash,
-                                    Platform platform) {
+                                    Platform platform, int clientVersion) {
         return Inbox.builder()
                 .publicKey(publicKeyHash)
+                .clientVersion(clientVersion)
                 .token(request.token())
                 .platform(platform)
                 .build();

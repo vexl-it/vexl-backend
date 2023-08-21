@@ -5,6 +5,7 @@ import com.cleevio.vexl.module.inbox.constant.Platform;
 import com.cleevio.vexl.module.push.dto.PushMessageDto;
 import com.cleevio.vexl.module.push.service.NotificationService;
 import com.google.firebase.messaging.*;
+import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,33 +29,34 @@ public class FirebaseService implements NotificationService {
             return;
         }
 
-        final boolean sendSystemNotification = dto.title() != null && dto.text() != null;
+        final boolean sendSystemNotification = dto.clientVersion() < ClientVersion.DO_NOT_SENT_SYSTEM_NOTIFICATION_FROM_THIS_VERSION_ON && dto.title() != null && dto.text() != null;
         try {
             var messageBuilder = Message.builder();
 
-            final ApnsConfig apnsConfig = ApnsConfig.builder()
-                    .setAps(Aps.builder()
-                            .setContentAvailable(true)
-                            .build())
-                    .build();
-
-            messageBuilder.setApnsConfig(apnsConfig);
 
             if(sendSystemNotification) {
                 if (Platform.IOS.equals(dto.platform())) {
                     messageBuilder.setNotification(Notification.builder().setTitle(dto.title()).setBody(dto.text()).build());
                 }
 
-                if (Platform.ANDROID.equals(dto.platform())) {
-                    messageBuilder.setAndroidConfig(
-                            AndroidConfig.builder()
-                                    .setPriority(AndroidConfig.Priority.HIGH)
-                                    .build()
-                    );
-                }
                 messageBuilder.putData(TITLE, dto.title());
                 messageBuilder.putData(BODY, dto.text());
             }
+
+            if (Platform.ANDROID.equals(dto.platform())) {
+                messageBuilder.setAndroidConfig(
+                        AndroidConfig.builder()
+                                .setPriority(AndroidConfig.Priority.HIGH)
+                                .build()
+                );
+            }
+
+            final ApnsConfig apnsConfig = ApnsConfig.builder()
+                    .setAps(Aps.builder()
+                            .setContentAvailable(true)
+                            .build())
+                    .build();
+            messageBuilder.setApnsConfig(apnsConfig);
 
             messageBuilder.setToken(dto.token());
             messageBuilder.putData(TYPE, dto.messageType().name());
