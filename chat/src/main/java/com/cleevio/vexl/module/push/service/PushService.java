@@ -54,6 +54,7 @@ public class PushService {
                 text,
                 event.token(),
                 event.platform(),
+                event.clientVersion(),
                 event.messageType(),
                 event.receiverPublicKey(),
                 event.senderPublicKey()

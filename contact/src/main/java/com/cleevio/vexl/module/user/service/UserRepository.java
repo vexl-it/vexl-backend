@@ -26,7 +26,7 @@ interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExec
     int getActiveUsersCount();
 
     @Query(value = """
-            select u.firebase_token as FirebaseToken, u.platform as Platform from users u
+            select u.firebase_token as FirebaseToken, u.client_version as ClientVersion, u.platform as Platform from users u
             where u.refreshed_at is not null and u.refreshed_at < :notifyBeforeDate
             and u.platform is not null and u.firebase_token is not null
             """, nativeQuery = true)

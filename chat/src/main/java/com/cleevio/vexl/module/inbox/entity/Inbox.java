@@ -54,6 +54,8 @@ public class Inbox {
     @Convert(converter = AesEncryptionConvertor.class)
     private String token;
 
+    private int clientVersion;
+
     @Enumerated(EnumType.STRING)
     private Platform platform;
 
@@ -62,4 +64,5 @@ public class Inbox {
 
     @OneToMany(mappedBy = "inbox", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Whitelist> whitelists = new HashSet<>();
+
 }

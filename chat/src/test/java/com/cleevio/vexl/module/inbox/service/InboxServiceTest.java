@@ -58,7 +58,7 @@ class InboxServiceTest {
     void createInbox_inboxShouldBeCreated() {
         final var inboxEvent = ArgumentCaptor.forClass(Inbox.class);
         final var publicHash = ArgumentCaptor.forClass(String.class);
-        this.inboxService.createInbox(CREATE_INBOX_REQUEST, Platform.ANDROID);
+        this.inboxService.createInbox(CREATE_INBOX_REQUEST, Platform.ANDROID, 0);
         verify(this.inboxRepository).existsByPublicKey(publicHash.capture());
         verify(this.inboxRepository).save(inboxEvent.capture());
         final var inboxResult = inboxEvent.getValue();
@@ -72,7 +72,7 @@ class InboxServiceTest {
     void createDuplicateInbox_shouldNotCreateInbox() {
         when(this.inboxRepository.existsByPublicKey(PUBLIC_KEY)).thenReturn(true);
 
-        this.inboxService.createInbox(CREATE_INBOX_REQUEST, Platform.ANDROID);
+        this.inboxService.createInbox(CREATE_INBOX_REQUEST, Platform.ANDROID, 0);
         verify(inboxRepository, never()).save(any());
     }
 

@@ -5,6 +5,9 @@ public class ClientVersion {
     public static final String CLIENT_VERSION_HEADER = "client-version";
     public static final String NEXT_PREFIX = "next:";
 
+    public static final int MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING = 43;
+    public static final int DO_NOT_SENT_SYSTEM_NOTIFICATION_FROM_THIS_VERSION_ON = 55;
+
     private static int parseIntOrFallback(final String valueToParse, final int fallback) {
         try {
             return Integer.parseInt(valueToParse);

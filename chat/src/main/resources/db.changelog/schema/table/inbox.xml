@@ -66,4 +66,12 @@
             <column name="public_key"/>
         </createIndex>
     </changeSet>
+
+    <changeSet id="add-client_version" author="davenov">
+        <addColumn tableName="inbox">
+            <column name="client_version" defaultValue="0" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

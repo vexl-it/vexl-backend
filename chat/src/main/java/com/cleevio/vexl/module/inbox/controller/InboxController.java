@@ -13,7 +13,6 @@ import com.cleevio.vexl.module.inbox.service.InboxService;
 import com.cleevio.vexl.module.inbox.service.WhitelistService;
 import com.cleevio.vexl.module.message.constant.MessageType;
 import com.cleevio.vexl.module.message.dto.response.MessagesResponse;
-import com.cleevio.vexl.module.message.entity.Message;
 import com.cleevio.vexl.module.message.mapper.MessageMapper;
 import com.cleevio.vexl.module.message.service.MessageService;
 import com.cleevio.vexl.module.message.service.query.SendMessageToInboxQuery;
@@ -24,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,10 +55,13 @@ public class InboxController {
     @Operation(summary = "Create a new inbox.", description = "Every user and every offer must have own inbox.")
     void createInbox(@RequestBody CreateInboxRequest request,
                      @RequestHeader(name = SecurityFilter.X_PLATFORM) String platform,
-                     @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                     @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                     @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") final String clientVersionRaw) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
+        final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
+
         challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.publicKey(), request.signedChallenge()), cryptoVersion);
-        this.inboxService.createInbox(request, Platform.valueOf(platform.toUpperCase()));
+        this.inboxService.createInbox(request, Platform.valueOf(platform.toUpperCase()), clientVersion);
     }
 
     @PutMapping
@@ -70,10 +73,13 @@ public class InboxController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(summary = "Update a existing inbox.", description = "You can update only Firebase token.")
     ResponseEntity<InboxResponse> updateInbox(@RequestBody UpdateInboxRequest request,
-                                              @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                                              @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                                              @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") final String clientVersionRaw) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
+        final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
+
         challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.publicKey(), request.signedChallenge()), cryptoVersion);
-        return new ResponseEntity<>(new InboxResponse(this.inboxService.updateInbox(request)), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(new InboxResponse(this.inboxService.updateInbox(request, clientVersion)), HttpStatus.ACCEPTED);
     }
 
     @PutMapping("/block")

@@ -15,5 +15,5 @@ public interface InactivityNotificationDto {
     String getFirebaseToken();
 
     Platform getPlatform();
-
+    int getClientVersion();
 }
