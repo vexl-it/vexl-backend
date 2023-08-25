@@ -5,6 +5,7 @@ import com.cleevio.vexl.module.inbox.entity.Whitelist;
 import com.cleevio.vexl.module.inbox.constant.WhitelistState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -22,6 +23,7 @@ interface WhitelistRepository extends JpaRepository<Whitelist, Long>, JpaSpecifi
     @Query("select w from Whitelist w where w.inbox = :inbox and w.publicKey = :publicKeyToBlockHash")
     Optional<Whitelist> findOnWhitelist(Inbox inbox, String publicKeyToBlockHash);
 
+    @Modifying
     @Query("delete from Whitelist w where w.inbox = :inbox and w.publicKey = :publicKey")
     int deleteFromWhitelist(Inbox inbox, String publicKey);
 
