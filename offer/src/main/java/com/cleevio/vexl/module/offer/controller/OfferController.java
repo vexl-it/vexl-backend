@@ -8,6 +8,7 @@ import com.cleevio.vexl.module.offer.dto.v1.response.NotExistingOffersResponse;
 import com.cleevio.vexl.module.offer.service.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -83,14 +84,17 @@ public class OfferController {
             @SecurityRequirement(name = SecurityFilter.HEADER_HASH),
             @SecurityRequirement(name = SecurityFilter.HEADER_SIGNATURE),
     })
-    @ApiResponse(responseCode = "200")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400 (100108)", description = "Limit reached")
+    })
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Report an offer.",
             description = """
                     Send offerId of an offer you want to report.
                     After reporting you will not see offer in app.
                     """)
-    void reportOffer(@RequestBody ReportOfferRequest request) {
-        this.offerService.reportOffer(request);
+    void reportOffer(@RequestBody ReportOfferRequest request,  @RequestHeader(SecurityFilter.HEADER_PUBLIC_KEY) String publicKey) {
+        this.offerService.reportOffer(request, publicKey);
     }
 }

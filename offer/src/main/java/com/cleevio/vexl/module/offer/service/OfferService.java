@@ -10,10 +10,8 @@ import com.cleevio.vexl.module.offer.dto.v1.request.ReportOfferRequest;
 import com.cleevio.vexl.module.offer.dto.v2.request.*;
 import com.cleevio.vexl.module.offer.entity.OfferPrivatePart;
 import com.cleevio.vexl.module.offer.entity.OfferPublicPart;
-import com.cleevio.vexl.module.offer.exception.DuplicatedPublicKeyException;
-import com.cleevio.vexl.module.offer.exception.IncorrectAdminIdFormatException;
-import com.cleevio.vexl.module.offer.exception.MissingOwnerPrivatePartException;
-import com.cleevio.vexl.module.offer.exception.OfferNotFoundException;
+import com.cleevio.vexl.module.offer.entity.OfferReportedRecord;
+import com.cleevio.vexl.module.offer.exception.*;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
 import com.cleevio.vexl.module.stats.event.OffersDeletedEvent;
@@ -34,7 +32,9 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -55,6 +55,7 @@ public class OfferService {
     private final MessageDigest messageDigest;
     private final AdvisoryLockService advisoryLockService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final OfferReportedRecordRepository offerReportedRecordRepository;
 
     private final Counter offerPublicPartExpiredCounter;
     private final Counter offerPrivatePartExpiredCounter;
@@ -65,6 +66,10 @@ public class OfferService {
     private final Integer expirationPeriod;
     @Value("${offer.reportFilter:-1}")
     private final Integer reportFilter;
+
+    private final Integer reportLimitIntervalDays = 1;
+    private final Integer reportLimitCount = 3;
+
     private static final long ONE = 1;
     private static final int SIXTY_FOUR = 64;
 
@@ -78,8 +83,8 @@ public class OfferService {
             @Value("${offer.reportFilter:-1}")
             Integer reportFilter,
             MeterRegistry registry,
-            ApplicationEventPublisher applicationEventPublisher
-    ) {
+            ApplicationEventPublisher applicationEventPublisher,
+            OfferReportedRecordRepository offerReportedRecordRepository) {
         this.offerPublicRepository = offerPublicRepository;
         this.offerPrivateRepository = offerPrivateRepository;
         this.advisoryLockService = advisoryLockService;
@@ -103,6 +108,7 @@ public class OfferService {
                 .builder("analytics.offers.deletion.private_part")
                 .description("How many offers was deleted (private parts - for each contact)")
                 .register(registry);
+        this.offerReportedRecordRepository = offerReportedRecordRepository;
 
         try {
             this.messageDigest = MessageDigest.getInstance("SHA-256");
@@ -321,18 +327,38 @@ public class OfferService {
     }
 
     @Transactional
-    public void reportOffer(@Valid final ReportOfferRequest request) {
+    public void reportOffer(@Valid final ReportOfferRequest request, final String publicKey) {
         advisoryLockService.lock(
                 ModuleLockNamespace.OFFER,
                 OfferAdvisoryLock.REPORT.name(),
                 request.offerId()
         );
 
+        if (offerReportedRecordRepository.countByUserPublicKeyEqualsAndReportedAtAfter(
+                publicKey,
+                Instant.now().minus(reportLimitIntervalDays, ChronoUnit.DAYS)) >= reportLimitCount
+        ) {
+            throw new ReportLimitReachedException();
+        }
+
         this.offerPublicRepository.findByOfferId(request.offerId())
                 .ifPresentOrElse(
                         this::increaseReportAndSave,
                         () -> log.warn("Offer [{}] does not exist", request.offerId())
                 );
+
+        offerReportedRecordRepository
+                .save(
+                OfferReportedRecord.builder()
+                        .reportedAt(Instant.now())
+                        .userPublicKey(publicKey)
+                        .build()
+                );
+    }
+
+    @Transactional
+    public void cleanReportRecords() {
+        offerReportedRecordRepository.deleteByReportedAtBefore(Instant.now().minus(reportLimitIntervalDays, ChronoUnit.DAYS));
     }
 
     @Transactional
