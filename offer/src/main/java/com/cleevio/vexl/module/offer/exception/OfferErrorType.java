@@ -16,6 +16,7 @@ public enum OfferErrorType implements ErrorType {
 	DATE_FORMAT_EXCEPTION("105", "Wrong date format. Correct date format example - 2022-04-09T09:42:53.000Z. Date MUST be in UTC."),
 	DUPLICATED_PUBLIC_KEY("106", "There is more than one private part with the same public key. This is not allowed."),
 	INCORRECT_ADMIN_ID_FORMAT("107", "Incorrect admin id format."),
+	REPORT_LIMIT_REACHED("108", "You have reached the limit of reports. Try again later."),
 	;
 
 	/**

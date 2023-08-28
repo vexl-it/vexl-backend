@@ -11,7 +11,7 @@ public class RemoveExpiredOffersTask {
 
     private final OfferService offerService;
 
-    @Scheduled(cron = "${cron.offer-remove}")
+    @Scheduled(cron = "-") // moved to request and called using curl on infra
     public void removeExpiredOffers() {
         offerService.removeExpiredOffers();
     }
