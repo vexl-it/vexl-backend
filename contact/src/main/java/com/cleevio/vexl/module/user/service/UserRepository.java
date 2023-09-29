@@ -32,6 +32,14 @@ interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExec
             """, nativeQuery = true)
     List<InactivityNotificationDto> retrieveFirebaseTokensOfInactiveUsers(@Param("notifyBeforeDate") LocalDate notifyBeforeDate);
 
+    @Query(value = """
+            select u from User u
+            where u.refreshedAt is not null and u.refreshedAt < :notifyBeforeDate
+            and (u.lastNewContentNotificationSentAt is null or u.lastNewContentNotificationSentAt < :notifyBeforeDate)
+            and u.platform is not null and u.firebaseToken is not null
+            """)
+    List<User> retrieveFirebaseTokensForNewContentNotification(@Param("notifyBeforeDate") LocalDate notifyBeforeDate);
+
     @Query("select u from User u where u.firebaseToken in (:firebaseTokens)")
     List<User> findByFirebaseTokens(List<String> firebaseTokens);
 }

@@ -7,10 +7,12 @@ import com.cleevio.vexl.module.stats.dto.StatsDto;
 import com.cleevio.vexl.module.user.constant.Platform;
 import com.cleevio.vexl.module.user.constant.UserAdvisoryLock;
 import com.cleevio.vexl.module.user.dto.InactivityNotificationDto;
+import com.cleevio.vexl.module.user.dto.NewContentNotificationDto;
 import com.cleevio.vexl.module.user.dto.request.CreateUserRequest;
 import com.cleevio.vexl.module.user.dto.request.FirebaseTokenUpdateRequest;
 import com.cleevio.vexl.module.user.dto.request.RefreshUserRequest;
 import com.cleevio.vexl.module.user.entity.User;
+import com.cleevio.vexl.module.user.event.NewContentNotificationEvent;
 import com.cleevio.vexl.module.user.event.UserInactivityLimitExceededEvent;
 import com.cleevio.vexl.module.user.event.UserRemovedEvent;
 import com.cleevio.vexl.module.user.exception.UserNotFoundException;
@@ -176,6 +178,29 @@ public class UserService {
         }
 
         applicationEventPublisher.publishEvent(new UserInactivityLimitExceededEvent(inactivityNotificationDtos));
+    }
+
+    @Transactional()
+    public void notifyInactiveUsersAboutNewContent(@NotNull @PositiveOrZero final Integer notificationAfterDays) {
+        final List<User> users = this.userRepository.retrieveFirebaseTokensForNewContentNotification(LocalDate.now().minusDays(notificationAfterDays));
+        if (users.isEmpty()) {
+            return;
+        }
+
+        users.forEach(it -> it.setLastNewContentNotificationSentAt(LocalDate.now()));
+        this.userRepository.saveAll(users);
+
+        final var notificationDtos = users
+                .stream()
+                .filter(it -> it.getFirebaseToken() != null)
+                .map(it -> new NewContentNotificationDto(
+                        it.getFirebaseToken(),
+                        it.getPlatform(),
+                        it.getClientVersion()
+                ))
+                .toList();
+
+        applicationEventPublisher.publishEvent(new NewContentNotificationEvent(notificationDtos));
     }
 
     @Transactional

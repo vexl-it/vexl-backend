@@ -9,6 +9,7 @@ import com.cleevio.vexl.module.push.dto.NotificationDto;
 import com.cleevio.vexl.module.push.dto.PushNotification;
 import com.cleevio.vexl.module.push.entity.Push;
 import com.cleevio.vexl.module.user.dto.InactivityNotificationDto;
+import com.cleevio.vexl.module.user.dto.NewContentNotificationDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,5 +75,9 @@ public class PushService {
 
     public void sendInactivityReminderNotification(List<InactivityNotificationDto> inactivityNotificationDto) {
         notificationService.sendInactivityReminderNotification(inactivityNotificationDto);
+    }
+
+    public void sendNewContentNotification(List<NewContentNotificationDto> dtos) {
+        notificationService.sendNewContentNotification(dtos);
     }
 }

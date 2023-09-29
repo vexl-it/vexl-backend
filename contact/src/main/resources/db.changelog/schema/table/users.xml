@@ -92,4 +92,12 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="add-last_new_content_notification" author="davenov">
+        <addColumn tableName="users">
+            <column name="last_new_content_notification_sent_at" type="date">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
