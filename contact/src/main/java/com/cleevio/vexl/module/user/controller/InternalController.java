@@ -19,7 +19,9 @@ public class InternalController {
 
     private final UserService userService;
     @Value("${inactivity.period}")
-    private final Integer notificationAfter;
+    private final Integer inactivityNotificationAfter;
+    @Value("${newContent.period}")
+    private final Integer newContentNotificationAfter;
     private final TestService test;
 
     @Autowired
@@ -27,7 +29,12 @@ public class InternalController {
 
     @RequestMapping("/process-user-inactivity")
     public void processUserInactivity() {
-        this.userService.processNotificationsForInactivity(notificationAfter);
+        this.userService.processNotificationsForInactivity(inactivityNotificationAfter);
+    }
+
+    @RequestMapping("/process-new-content-notifications")
+    public void processNewContentNotification() {
+        this.userService.notifyInactiveUsersAboutNewContent(newContentNotificationAfter);
     }
 
 

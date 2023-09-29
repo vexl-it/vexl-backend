@@ -47,6 +47,9 @@ public class User {
     @Nullable
     private LocalDate refreshedAt;
 
+    @Nullable
+    private LocalDate lastNewContentNotificationSentAt;
+
     @Enumerated(EnumType.STRING)
     private Platform platform;
 }

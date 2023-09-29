@@ -12,6 +12,7 @@ import com.cleevio.vexl.module.contact.constant.ConnectionLevel;
 import com.cleevio.vexl.module.push.dto.PushNotification;
 import com.cleevio.vexl.module.user.constant.Platform;
 import com.cleevio.vexl.module.user.dto.InactivityNotificationDto;
+import com.cleevio.vexl.module.user.dto.NewContentNotificationDto;
 import com.google.firebase.messaging.*;
 import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class FirebaseService implements NotificationService, DeeplinkService {
     private static final String BODY = "body";
 
     private static final String INACTIVITY_NOTIFICATION_TYPE = "INACTIVITY_REMINDER";
+    private static final String NEW_CONTENT_NOTIFICATION_TYPE = "NEW_CONTENT";
 
     @Override
     public void sendPushNotification(final PushNotification push) {
@@ -108,6 +110,40 @@ public class FirebaseService implements NotificationService, DeeplinkService {
         if (!successfullySentNotificationsTo.isEmpty()) {
             applicationEventPublisher.publishEvent(new InactivityNotificationSuccessfullySentEvent(successfullySentNotificationsTo));
         }
+    }
+
+    @Override
+    public void sendNewContentNotification(List<NewContentNotificationDto> firebaseTokens) {
+        // TODO not ideal. We should send notifications in batches of 500 tokens
+        firebaseTokens.forEach(dto -> {
+            try {
+                var messageBuilder = Message.builder();
+
+                final ApnsConfig apnsConfig = ApnsConfig.builder()
+                        .setAps(Aps.builder()
+                                .setContentAvailable(true)
+                                .build())
+                        .build();
+
+                messageBuilder.setApnsConfig(apnsConfig);
+
+                messageBuilder.setAndroidConfig(
+                        AndroidConfig.builder()
+                                .setPriority(AndroidConfig.Priority.HIGH)
+                                .build()
+                );
+
+                messageBuilder.setToken(dto.firebaseToken());
+                messageBuilder.putData(TYPE, NEW_CONTENT_NOTIFICATION_TYPE);
+
+                final String response = FirebaseMessaging.getInstance().send(messageBuilder.build());
+                log.info("Sent message: " + response);
+            } catch (FirebaseMessagingException e) {
+                handleException(e, dto.firebaseToken());
+            } catch (Exception e) {
+                log.error("Error sending notification: " + e.getMessage(), e);
+            }
+        });
     }
 
     @Override
