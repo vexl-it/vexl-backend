@@ -95,7 +95,7 @@ public class MessageService {
         if (areAllSendersInReceiversWhitelistApproved(request)) {
             request.data().forEach(it -> it.messages().forEach(m -> {
                 final Inbox receiverInbox = this.inboxService.findInbox(m.receiverPublicKey());
-                queryList.add(new SendMessageToInboxQuery(it.senderPublicKey(), m.receiverPublicKey(), receiverInbox, m.message(), m.messageType()));
+                queryList.add(new SendMessageToInboxQuery(it.senderPublicKey(), m.receiverPublicKey(), receiverInbox, m.message(), m.messageType(), m.messagePreview()));
             }));
 
         } else {
@@ -103,7 +103,7 @@ public class MessageService {
             request.data().forEach(it -> it.messages().forEach(m -> {
                 final Inbox receiverInbox = this.inboxService.findInbox(m.receiverPublicKey());
                 if (this.whitelistService.isSenderInWhitelistApproved(it.senderPublicKey(), receiverInbox)) {
-                    queryList.add(new SendMessageToInboxQuery(it.senderPublicKey(), m.receiverPublicKey(), receiverInbox, m.message(), m.messageType()));
+                    queryList.add(new SendMessageToInboxQuery(it.senderPublicKey(), m.receiverPublicKey(), receiverInbox, m.message(), m.messageType(), m.messagePreview()));
                 } else {
                     log.info("Sender [{}] is blocked by receiver [{}] or not approve yet.", it.senderPublicKey(), receiverInbox);
                 }
@@ -190,7 +190,8 @@ public class MessageService {
                 leaveChatRequest.receiverPublicKey(),
                 receiverInbox,
                 leaveChatRequest.message(),
-                MessageType.DELETE_CHAT
+                MessageType.DELETE_CHAT,
+                null
         ), true);
 
     }
@@ -284,7 +285,8 @@ public class MessageService {
                             query.receiverInbox().getPlatform(),
                             query.messageType(),
                             query.receiverPublicKey(),
-                            query.senderPublicKey()
+                            query.senderPublicKey(),
+                            query.messagePreview()
                     ));
         }
 
@@ -306,7 +308,8 @@ public class MessageService {
                                 query.receiverInbox().getPlatform(),
                                 query.messageType(),
                                 query.receiverPublicKey(),
-                                query.senderPublicKey()
+                                query.senderPublicKey(),
+                                query.messagePreview()
                         ));
             }
         });

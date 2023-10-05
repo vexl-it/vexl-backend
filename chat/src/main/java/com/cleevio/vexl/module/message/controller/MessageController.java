@@ -108,7 +108,8 @@ public class MessageController {
                                 request.receiverPublicKey(),
                                 receiverInbox,
                                 request.message(),
-                                request.messageType()
+                                request.messageType(),
+                                request.messagePreview()
                         )
                 )
         );

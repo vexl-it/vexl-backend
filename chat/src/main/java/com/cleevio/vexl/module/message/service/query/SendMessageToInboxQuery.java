@@ -3,6 +3,7 @@ package com.cleevio.vexl.module.message.service.query;
 import com.cleevio.vexl.module.inbox.entity.Inbox;
 import com.cleevio.vexl.module.message.constant.MessageType;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -22,7 +23,9 @@ public record SendMessageToInboxQuery(
         String message,
 
         @NotNull
-        MessageType messageType
+        MessageType messageType,
 
+        @Nullable
+        String messagePreview
 ) {
 }
