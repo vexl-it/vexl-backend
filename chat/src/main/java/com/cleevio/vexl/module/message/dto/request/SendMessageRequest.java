@@ -5,6 +5,7 @@ import com.cleevio.vexl.module.message.constant.MessageType;
 import com.cleevio.vexl.module.inbox.dto.SignedChallenge;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -31,6 +32,10 @@ public record SendMessageRequest(
 
         @Valid
         @NotNull
-        SignedChallenge signedChallenge
+        SignedChallenge signedChallenge,
+
+        @Nullable
+        @Schema(description = "Preview of the message. Used for push notifications.")
+        String messagePreview
 ) {
 }

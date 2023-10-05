@@ -117,7 +117,8 @@ public class InboxController {
                                 request.publicKey(),
                                 receiverInbox,
                                 request.message(),
-                                MessageType.REQUEST_MESSAGING
+                                MessageType.REQUEST_MESSAGING,
+                                null
                         )
 
                 )
@@ -144,7 +145,8 @@ public class InboxController {
                                 request.publicKey(),
                                 receiverInbox,
                                 request.message(),
-                                MessageType.CANCEL_REQUEST_MESSAGING // TODO backward compatibility - this might cause the old app to crash
+                                MessageType.CANCEL_REQUEST_MESSAGING,
+                                null
                         )
 
                 )
@@ -179,7 +181,8 @@ public class InboxController {
                                     request.publicKeyToConfirm(),
                                     requesterInbox,
                                     request.message(),
-                                    MessageType.DISAPPROVE_MESSAGING
+                                    MessageType.DISAPPROVE_MESSAGING,
+                                    null
                             )
                     )
             );
@@ -192,7 +195,8 @@ public class InboxController {
                                     request.publicKeyToConfirm(),
                                     requesterInbox,
                                     request.message(),
-                                    MessageType.APPROVE_MESSAGING
+                                    MessageType.APPROVE_MESSAGING,
+                                    null
                             )
                     )
             );

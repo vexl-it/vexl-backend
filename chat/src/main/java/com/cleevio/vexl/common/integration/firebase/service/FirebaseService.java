@@ -22,6 +22,7 @@ public class FirebaseService implements NotificationService {
     private static final String TYPE = "type";
     private static final String INBOX = "inbox";
     private static final String SENDER = "sender";
+    private static final String PREVIEW = "preview";
 
     public void sendPushNotification(final PushMessageDto dto) {
         if (Platform.CLI.equals(dto.platform())) {
@@ -62,6 +63,8 @@ public class FirebaseService implements NotificationService {
             messageBuilder.putData(TYPE, dto.messageType().name());
             messageBuilder.putData(INBOX, dto.receiverPublicKey());
             messageBuilder.putData(SENDER, dto.senderPublicKey());
+            if(dto.messagePreview() != null)
+                messageBuilder.putData(PREVIEW, dto.messagePreview());
 
             final String response = FirebaseMessaging.getInstance().send(messageBuilder.build());
             log.info("Sent message: " + response);

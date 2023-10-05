@@ -26,6 +26,7 @@ public record PushMessageDto (
 		int clientVersion,
 		MessageType messageType,
         String receiverPublicKey,
-        String senderPublicKey
-
+        String senderPublicKey,
+		@Nullable
+		String messagePreview
 ) {}
