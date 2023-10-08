@@ -76,14 +76,9 @@ public class FirebaseService implements NotificationService {
     }
 
     private void handleException(final FirebaseMessagingException e, PushMessageDto dto) {
-        switch (e.getErrorCode().name()) {
-            case ErrorCode.TOKEN_NOT_REGISTERED, ErrorCode.INVALID_TOKEN -> applicationEventPublisher.publishEvent(new FirebaseTokenInvalidatedEvent(dto.senderPublicKey(), dto.token()));
+        switch (e.getErrorCode()) {
+            case NOT_FOUND -> applicationEventPublisher.publishEvent(new FirebaseTokenInvalidatedEvent(dto.senderPublicKey(), dto.token()));
             default -> log.error("Error errored during sending push notification: " + e.getMessage(), e);
         }
-    }
-
-    private static class ErrorCode {
-        public final static String INVALID_TOKEN = "messaging/invalid-registration-token";
-        public final static String TOKEN_NOT_REGISTERED = "messaging/registration-token-not-registered";
     }
 }

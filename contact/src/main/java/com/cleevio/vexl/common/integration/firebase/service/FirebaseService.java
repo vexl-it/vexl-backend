@@ -218,8 +218,8 @@ public class FirebaseService implements NotificationService, DeeplinkService {
     }
 
     private void handleException(FirebaseMessagingException e, String firebaseToken) {
-        switch (e.getErrorCode().name()) {
-            case ErrorCode.TOKEN_NOT_REGISTERED, ErrorCode.INVALID_TOKEN -> {
+        switch (e.getErrorCode()) {
+            case NOT_FOUND -> {
                 log.info("Token [{}] is unregistered or invalid. Application is removing the token.", firebaseToken);
                 applicationEventPublisher.publishEvent(new FirebaseTokenUnregisteredEvent(firebaseToken));
             }
@@ -227,8 +227,4 @@ public class FirebaseService implements NotificationService, DeeplinkService {
         }
     }
 
-    private static class ErrorCode {
-        public final static String INVALID_TOKEN = "messaging/invalid-registration-token";
-        public final static String TOKEN_NOT_REGISTERED = "messaging/registration-token-not-registered";
-    }
 }
