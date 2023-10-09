@@ -159,7 +159,7 @@ public class ContactService {
     /**
      * Send a notification to all existing contacts, so they can encrypt their Offers for a new user.
      */
-    @Async("sendNotificationToContactsExecutor")
+    @Async
     @Transactional(readOnly = true)
     public void sendNotificationToContacts(final Set<String> importedHashes, final User user) {
         if (importedHashes.isEmpty()) {
@@ -196,12 +196,10 @@ public class ContactService {
     }
 
     public Set<String> retrieveSecondDegreeFirebaseTokensByHashes(final Set<String> importedHashes, final String hash, final Set<String> firebaseTokens) {
-        final Set<User> usersSecondDegree = this.contactRepository.retrieveSecondDegreeFirebaseTokensByHashes(hash, ConnectionLevel.SECOND, importedHashes);
+        final Set<String> usersSecondDegree = this.contactRepository.retrieveSecondDegreeFirebaseTokensByHashes(hash, importedHashes);
         return usersSecondDegree.stream()
-                .map(User::getFirebaseToken)
                 .filter(firebaseToken -> !firebaseTokens.contains(firebaseToken))
                 .collect(Collectors.toSet());
-
     }
 
     @Transactional(readOnly = true)

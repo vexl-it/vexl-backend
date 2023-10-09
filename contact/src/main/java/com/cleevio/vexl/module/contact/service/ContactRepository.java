@@ -102,15 +102,18 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
             """)
     Set<User> retrieveFirebaseTokensByHashes(String newUserHash);
 
-    @Query("""
-            select distinct second from User second 
-            INNER JOIN VContact v on second.publicKey = v.publicKey 
-            INNER JOIN User me on me.publicKey = v.myPublicKey 
-            INNER JOIN UserContact uc on second.hash = uc.hashFrom
-            where v.level = :level and me.hash = :newUserHash 
-            and second.firebaseToken is not null and uc.hashTo in (:importedHashes)
-            """)
-    Set<User> retrieveSecondDegreeFirebaseTokensByHashes(String newUserHash, ConnectionLevel level, Set<String> importedHashes);
+    @Query(value = """
+            select
+                distinct(second_degree_friend.firebase_token)
+            from user_contact connections_to_imported_contacts
+                     inner join users second_degree_friend
+                                on second_degree_friend.hash = connections_to_imported_contacts.hash_from
+            where true
+              and connections_to_imported_contacts.hash_to in (:importedHashes)
+              and connections_to_imported_contacts.hash_to != connections_to_imported_contacts.hash_from
+              and second_degree_friend.firebase_token is not null and second_degree_friend.hash != :newUserHash;
+            """, nativeQuery = true)
+    Set<String> retrieveSecondDegreeFirebaseTokensByHashes(String newUserHash, Set<String> importedHashes);
 
     @Query("select count(uc) from UserContact uc")
     int getConnectionsCount();
