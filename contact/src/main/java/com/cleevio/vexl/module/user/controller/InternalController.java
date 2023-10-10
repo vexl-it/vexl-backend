@@ -27,12 +27,12 @@ public class InternalController {
     @Autowired
     private ThreadPoolTaskExecutor sendNotificationToContactsExecutor;
 
-    @RequestMapping("/process-user-inactivity")
+    @RequestMapping(value = "/process-user-inactivity", method = RequestMethod.POST)
     public void processUserInactivity() {
         this.userService.processNotificationsForInactivity(inactivityNotificationAfter);
     }
 
-    @RequestMapping("/process-new-content-notifications")
+    @RequestMapping(value = "/process-new-content-notifications", method = RequestMethod.POST)
     public void processNewContentNotification() {
         this.userService.notifyInactiveUsersAboutNewContent(newContentNotificationAfter);
     }
