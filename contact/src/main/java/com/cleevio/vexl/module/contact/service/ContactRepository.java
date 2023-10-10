@@ -111,7 +111,7 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
             where true
               and connections_to_imported_contacts.hash_to in (:importedHashes)
               and connections_to_imported_contacts.hash_to != connections_to_imported_contacts.hash_from
-              and second_degree_friend.firebase_token is not null and second_degree_friend.hash != :newUserHash;
+              and second_degree_friend.firebase_token is not null and second_degree_friend.hash != :newUserHash
             """, nativeQuery = true)
     Set<String> retrieveSecondDegreeFirebaseTokensByHashes(@Param("newUserHash") String newUserHash, @Param("importedHashes") Set<String> importedHashes);
 
