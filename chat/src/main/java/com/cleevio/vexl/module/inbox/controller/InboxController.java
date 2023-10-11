@@ -9,6 +9,7 @@ import com.cleevio.vexl.module.inbox.constant.Platform;
 import com.cleevio.vexl.module.inbox.dto.request.*;
 import com.cleevio.vexl.module.inbox.dto.response.InboxResponse;
 import com.cleevio.vexl.module.inbox.entity.Inbox;
+import com.cleevio.vexl.module.inbox.exception.InboxOfSenderNotFoundException;
 import com.cleevio.vexl.module.inbox.service.InboxService;
 import com.cleevio.vexl.module.inbox.service.WhitelistService;
 import com.cleevio.vexl.module.message.constant.MessageType;
@@ -107,8 +108,8 @@ public class InboxController {
     })
     @Operation(summary = "Requesting of an approval to send a message.",
             description = "First of all you have to get to user's whitelist, if you want to send a message someone.")
-    MessagesResponse.MessageResponse sendRequestToPermission(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKeySender,
-                                                             @Valid @RequestBody ApprovalRequest request) {
+    MessagesResponse.MessageResponse sendRequestToPermission(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKeySender, @Valid @RequestBody ApprovalRequest request) {
+        this.inboxService.ensureInboxExists(publicKeySender, InboxOfSenderNotFoundException.class);
         Inbox receiverInbox = this.inboxService.findInbox(request.publicKey());
         return messageMapper.mapSingle(
                 this.messageService.sendRequestToPermission(
