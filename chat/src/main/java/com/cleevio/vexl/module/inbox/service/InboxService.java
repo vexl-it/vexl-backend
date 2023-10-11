@@ -1,6 +1,7 @@
 package com.cleevio.vexl.module.inbox.service;
 
 import com.cleevio.vexl.common.constant.ModuleLockNamespace;
+import com.cleevio.vexl.common.exception.ApiException;
 import com.cleevio.vexl.common.service.AdvisoryLockService;
 import com.cleevio.vexl.module.inbox.constant.InboxAdvisoryLock;
 import com.cleevio.vexl.module.inbox.constant.Platform;
@@ -9,8 +10,8 @@ import com.cleevio.vexl.module.inbox.dto.request.CreateInboxRequest;
 import com.cleevio.vexl.module.inbox.dto.request.DeletionRequest;
 import com.cleevio.vexl.module.inbox.dto.request.UpdateInboxRequest;
 import com.cleevio.vexl.module.inbox.entity.Inbox;
-import com.cleevio.vexl.module.message.event.RequestRemoveInboxSentEvent;
 import com.cleevio.vexl.module.inbox.exception.InboxNotFoundException;
+import com.cleevio.vexl.module.message.event.RequestRemoveInboxSentEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,6 +58,19 @@ public class InboxService {
         log.debug("Looking for inbox [{}]", publicKey);
         return this.inboxRepository.findByPublicKey(publicKey)
                 .orElseThrow(InboxNotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public void ensureInboxExists(@NotBlank String publicKey, Class<? extends ApiException> exceptionToThrowClass) {
+        log.debug("Looking for inbox [{}]", publicKey);
+        this.inboxRepository.findByPublicKey(publicKey)
+                .orElseThrow(() -> {
+                    try {
+                        return exceptionToThrowClass.getConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException("Exception while creating the ApiException", e);
+                    }
+                });
     }
 
     @Transactional
