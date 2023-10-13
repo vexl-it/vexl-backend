@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <!-- ##################################################################### -->
+    <!-- ###################### TABLE INSTALL CHANGESET ###################### -->
+    <!-- ##################################################################### -->
+    <changeSet id="create_feedback_submit_table" author="Daveov">
+        <preConditions onSqlOutput="TEST" onFail="CONTINUE">
+            <not>
+                <tableExists tableName="feedback_submit"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="feedback_submit">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="PK_feedbackSubmit"/>
+            </column>
+            <column name="type" type="varchar"/>
+            <column name="last_update" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stars" type="integer"/>
+            <column name="objections" type="varchar"/>
+            <column name="text_comment" type="varchar"/>
+            <column name="form_id" type="varchar"/>
+        </createTable>
+
+        <createIndex tableName="feedback_submit" indexName="form_id_IX" unique="true">
+            <column name="form_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

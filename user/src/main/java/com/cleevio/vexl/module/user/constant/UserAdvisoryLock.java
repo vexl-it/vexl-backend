@@ -5,6 +5,8 @@ public enum UserAdvisoryLock {
     CREATE_USER,
     PREPARE_USER,
     MODIFYING_USER,
+
+    SUBMITTING_FEEDBACK
     ;
 
 }

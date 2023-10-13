@@ -4,6 +4,8 @@ public enum ModuleLockNamespace {
 
     USER,
     VERIFICATION,
+
+    FEEDBACK_SUBMIT
     ;
 
 }
