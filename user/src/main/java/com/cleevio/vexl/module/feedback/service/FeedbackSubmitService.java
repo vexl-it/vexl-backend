@@ -19,7 +19,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class FeedbackSubmitService {
 
-    private FeedbackSubmitRepository feedbackSubmitRepository;
+    private final FeedbackSubmitRepository feedbackSubmitRepository;
     private final AdvisoryLockService advisoryLockService;
 
     @Transactional
