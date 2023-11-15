@@ -17,10 +17,10 @@ public class InternalController {
         return "Success";
     }
 
-    @PostMapping(value="/remove-expired-offers")
-    @ResponseBody
-    public String cleanExpiredOffers() {
-        offerService.removeExpiredOffers();
-        return "Success";
-    }
+//    @PostMapping(value="/remove-expired-offers")
+//    @ResponseBody
+//    public String cleanExpiredOffers() {
+//        offerService.removeExpiredOffers();
+//        return "Success";
+//    }
 }
