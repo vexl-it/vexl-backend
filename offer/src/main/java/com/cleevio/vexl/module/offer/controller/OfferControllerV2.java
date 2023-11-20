@@ -178,11 +178,11 @@ public class OfferControllerV2 {
             @SecurityRequirement(name = SecurityFilter.HEADER_HASH),
             @SecurityRequirement(name = SecurityFilter.HEADER_SIGNATURE),
     })
-    @ApiResponse(responseCode = "204")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ApiResponse(responseCode = "200")
+    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Refresh the offers.", description = "You should always send all your offers. Offers which are not refreshed will be deleted after set period.")
-    void refreshOffers(@RequestBody OffersRefreshRequest request,
+    List<String> refreshOffers(@RequestBody OffersRefreshRequest request,
                        @RequestHeader(SecurityFilter.HEADER_PUBLIC_KEY) String publicKey) {
-        this.offerService.refreshOffers(request, publicKey);
+        return this.offerService.refreshOffers(request, publicKey);
     }
 }

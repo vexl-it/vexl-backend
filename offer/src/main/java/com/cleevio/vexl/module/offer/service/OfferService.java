@@ -362,7 +362,7 @@ public class OfferService {
     }
 
     @Transactional
-    public void refreshOffers(@Valid final OffersRefreshRequest request, final String publicKey) {
+    public List<String> refreshOffers(@Valid final OffersRefreshRequest request, final String publicKey) {
         advisoryLockService.lock(
                 ModuleLockNamespace.OFFER,
                 OfferAdvisoryLock.REFRESH.name(),
@@ -379,6 +379,8 @@ public class OfferService {
         }
 
         this.offerPublicRepository.refreshOffers(adminIds);
+
+        return this.offerPublicRepository.findOfferIdByAdminIdIn(adminIds.toArray(String[]::new));
     }
 
     @Transactional(readOnly = true)
