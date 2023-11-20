@@ -64,4 +64,10 @@ interface OfferPublicRepository extends JpaRepository<OfferPublicPart, Long>, Jp
             where p.adminId in :adminIds
             """)
     void refreshOffers(List<String> adminIds);
+
+    @Query("""
+            select p.offerId from OfferPublicPart p where p.adminId in :adminIds
+            """)
+    List<String> findOfferIdByAdminIdIn(@Param("adminIds") String[] adminIds);
+
 }
