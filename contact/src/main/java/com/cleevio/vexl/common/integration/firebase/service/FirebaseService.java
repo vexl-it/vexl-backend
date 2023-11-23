@@ -47,6 +47,10 @@ public class FirebaseService implements NotificationService, DeeplinkService {
     private static final String INACTIVITY_NOTIFICATION_TYPE = "INACTIVITY_REMINDER";
     private static final String NEW_CONTENT_NOTIFICATION_TYPE = "NEW_CONTENT";
 
+    private static final String CREATE_OFFER_PROMPT = "CREATE_OFFER_PROMPT";
+
+    private static final String GENERAL_TOPIC = "general";
+
     @Override
     public void sendPushNotification(final PushNotification push) {
         push.membersFirebaseTokens().forEach(m -> processNotification(m, push, ConnectionLevel.FIRST));
@@ -207,6 +211,29 @@ public class FirebaseService implements NotificationService, DeeplinkService {
             handleException(e, firebaseToken);
         } catch (Exception e) {
             log.error("Error sending notification for token: " + firebaseToken, e);
+        }
+    }
+
+    @Override
+    public void sendCreateOfferPromptToGeneralTopic() {
+        try {
+            var messageBuilder = Message.builder();
+
+            final ApnsConfig apnsConfig = ApnsConfig.builder()
+                    .setAps(Aps.builder()
+                            .setContentAvailable(true)
+                            .build())
+                    .build();
+
+            messageBuilder.putData(TYPE, CREATE_OFFER_PROMPT);
+
+            messageBuilder.setApnsConfig(apnsConfig);
+            messageBuilder.setTopic(GENERAL_TOPIC);
+
+            final String response = FirebaseMessaging.getInstance().send(messageBuilder.build());
+            log.info("Message sent " + response);
+        } catch (Exception e) {
+            log.error("Error sending notification in sendCreateOfferPromptToGeneralTopic: ", e);
         }
     }
 

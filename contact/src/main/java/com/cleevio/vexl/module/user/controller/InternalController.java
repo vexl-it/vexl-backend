@@ -1,5 +1,6 @@
 package com.cleevio.vexl.module.user.controller;
 
+import com.cleevio.vexl.common.integration.firebase.service.FirebaseService;
 import com.cleevio.vexl.module.user.service.TestService;
 import com.cleevio.vexl.module.user.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,10 +23,8 @@ public class InternalController {
     private final Integer inactivityNotificationAfter;
     @Value("${newContent.period}")
     private final Integer newContentNotificationAfter;
-    private final TestService test;
 
-    @Autowired
-    private ThreadPoolTaskExecutor sendNotificationToContactsExecutor;
+    private final FirebaseService firebaseService;
 
     @RequestMapping(value = "/process-user-inactivity", method = RequestMethod.POST)
     public void processUserInactivity() {
@@ -37,19 +36,8 @@ public class InternalController {
         this.userService.notifyInactiveUsersAboutNewContent(newContentNotificationAfter);
     }
 
-
-    @PostMapping(value="/async-test")
-    @ResponseBody
-    public String spawnAsyncThread() {
-        test.runDummyAsyncThread();
-        return "spawned";
-    }
-
-    @GetMapping(value="/async-test")
-    @ResponseBody
-    public String getAsyncThreadsCount() {
-        return  " From executor: " + sendNotificationToContactsExecutor.getActiveCount()
-                + " Max size: " + sendNotificationToContactsExecutor.getMaxPoolSize()
-                + " Active: " + sendNotificationToContactsExecutor.getActiveCount();
+    @RequestMapping(value = "/send-create-offer-prompt-to-general-topic", method = RequestMethod.POST)
+    public void sendCreateOfferPromptToGeneralTopic() {
+        this.firebaseService.sendCreateOfferPromptToGeneralTopic();
     }
 }
