@@ -34,4 +34,10 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="add_country_code_to_feedback_submit_table" author="Daveov">
+        <addColumn tableName="feedback_submit">
+            <column name="country_code" type="varchar"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

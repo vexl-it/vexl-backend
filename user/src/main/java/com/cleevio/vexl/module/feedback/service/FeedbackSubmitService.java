@@ -44,6 +44,8 @@ public class FeedbackSubmitService {
             feedbackSubmit.setObjections(request.objections());
         if(request.textComment() != null)
             feedbackSubmit.setTextComment(request.textComment());
+        if(request.countryCode() != null)
+            feedbackSubmit.setCountryCode(request.countryCode());
 
         log.info("Feedback with formId {} is submitted.", request.formId());
 
