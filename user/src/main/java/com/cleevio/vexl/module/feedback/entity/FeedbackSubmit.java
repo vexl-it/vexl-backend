@@ -40,4 +40,7 @@ public class FeedbackSubmit {
     @Nullable
     private String textComment;
 
+    @Nullable
+    private String countryCode;
+
 }

@@ -25,6 +25,10 @@ public record FeedbackSubmitRequest(
         String objections,
 
         @Nullable
+        @Schema(description = "Country code")
+        String countryCode,
+
+        @Nullable
         @Schema(description = "Text comment")
         @JsonDeserialize(using = TrimStringDeserializer.class)
         String textComment
