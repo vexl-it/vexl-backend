@@ -41,14 +41,16 @@ interface ContactRepository extends JpaRepository<UserContact, Long>, JpaSpecifi
     int countContactsByHashTo(String hash);
 
     @Query(value = """
-            select u2.public_key as FriendPublicKey, array_agg(distinct uc.hash_to) as CommonFriends from user_contact uc
-            inner join user_contact uc2 on uc.hash_to = uc2.hash_to
-            inner join users u on uc2.hash_from  = u.hash
-            inner join user_contact uc3 on uc3.hash_to = uc.hash_to
-            inner join users u2 on u2.hash = uc3.hash_from
-            where u.public_key = :ownerPublicKey
-            and u2.public_key in (:publicKeys)
-            group by u2.public_key
+            select other_side.public_key as FriendPublicKey, array_agg(distinct imported_my_contact.hash_to) as CommonFriends
+            from users as my_user
+            inner join user_contact as my_contact
+                on my_user.hash = my_contact.hash_from
+            inner join user_contact as imported_my_contact
+                on my_contact.hash_to = imported_my_contact.hash_to
+            inner join users as other_side on other_side.hash = imported_my_contact.hash_from
+            where my_user.public_key = :ownerPublicKey
+              and other_side.public_key in (:publicKeys)
+            group by other_side.public_key;
             """, nativeQuery = true)
     List<CommonFriendsDto> retrieveCommonContacts(@Param("ownerPublicKey") String ownerPublicKey, @Param("publicKeys") Set<String> publicKeys);
 
