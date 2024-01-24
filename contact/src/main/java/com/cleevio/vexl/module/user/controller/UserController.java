@@ -7,6 +7,7 @@ import com.cleevio.vexl.module.user.dto.request.CreateUserRequest;
 import com.cleevio.vexl.module.user.dto.request.FirebaseTokenUpdateRequest;
 import com.cleevio.vexl.module.user.dto.request.RefreshUserRequest;
 import com.cleevio.vexl.module.user.entity.User;
+import com.cleevio.vexl.module.user.response.UserExistsResponse;
 import com.cleevio.vexl.module.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -59,6 +60,30 @@ public class UserController {
                 request == null ? new CreateUserRequest(null) : request,
                 clientVersion
         );
+    }
+
+
+    @PostMapping("/check-exists")
+    @SecurityRequirements({
+            @SecurityRequirement(name = SecurityFilter.HEADER_PUBLIC_KEY),
+            @SecurityRequirement(name = SecurityFilter.HEADER_HASH),
+            @SecurityRequirement(name = SecurityFilter.HEADER_SIGNATURE),
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+    })
+    @Operation(
+            summary = "Check if user exists",
+            description = "This endpoint must be called before create. If you call create endpoint without checking, you will erase previous instance of user (it will be logged from another device)"
+    )
+    @PreAuthorize("hasRole('ROLE_NEW_USER')")
+    UserExistsResponse checkUserExist(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
+                                  @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
+                                  @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersionRaw
+                                  ) {
+
+        final boolean exists = this.userService.checkUserExists(publicKey, ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersionRaw));
+        return new UserExistsResponse(exists);
     }
 
     @PostMapping("/refresh")
