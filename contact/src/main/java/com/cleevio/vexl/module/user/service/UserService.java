@@ -45,10 +45,24 @@ public class UserService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final AdvisoryLockService advisoryLockService;
 
+    @Deprecated
     @Transactional
     public User createUser(final String publicKey, final String hash, final int clientVersion) {
         return createUser(publicKey, hash, new CreateUserRequest(null), clientVersion);
     }
+
+    @Transactional
+    public Boolean checkUserExists(final String publicKey, final String hash) {
+        advisoryLockService.lock(
+                ModuleLockNamespace.USER,
+                UserAdvisoryLock.CREATE_USER.name(),
+                publicKey
+        );
+
+        final Optional<User> userByHash = this.userRepository.findByHash(hash);
+        return userByHash.isPresent();
+    }
+
 
     @Transactional
     public User createUser(final String publicKey, final String hash, @Valid CreateUserRequest request, final int clientVersion) {
