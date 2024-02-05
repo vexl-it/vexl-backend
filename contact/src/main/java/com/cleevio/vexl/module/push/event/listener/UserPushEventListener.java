@@ -2,6 +2,7 @@ package com.cleevio.vexl.module.push.event.listener;
 
 import com.cleevio.vexl.module.push.service.PushService;
 import com.cleevio.vexl.module.user.event.NewContentNotificationEvent;
+import com.cleevio.vexl.module.user.event.NotifyLoggingOnDifferentDeviceNotification;
 import com.cleevio.vexl.module.user.event.UserInactivityLimitExceededEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -25,5 +26,10 @@ class UserPushEventListener {
     @EventListener
     public void onNotifyUsersAboutNewContent(@Valid final NewContentNotificationEvent event) {
         pushService.sendNewContentNotification(event.dtos());
+    }
+
+    @EventListener
+    public void onNotifyLoggingOnDifferentDeviceNotification(@Valid final NotifyLoggingOnDifferentDeviceNotification event) {
+        pushService.sendLoggingOnDifferentDeviceNotification(event.firebaseToken());
     }
 }

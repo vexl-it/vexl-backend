@@ -79,10 +79,14 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_NEW_USER')")
     UserExistsResponse checkUserExist(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKey,
                                   @RequestHeader(name = SecurityFilter.HEADER_HASH) String hash,
-                                  @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersionRaw
+                                  @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") String clientVersionRaw,
+                                  @RequestParam(name = "notifyExistingUserAboutLogin", defaultValue = "false") boolean notifyExistingUserAboutLogin
                                   ) {
 
-        final boolean exists = this.userService.checkUserExists(publicKey, ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersionRaw));
+        final String hashWithPrefix = ClientVersion.getHashWithPrefixBasedOnClientVersion(hash,
+                        clientVersionRaw);
+        final boolean exists = this.userService.checkUserExists(publicKey, hashWithPrefix,
+                        notifyExistingUserAboutLogin);
         return new UserExistsResponse(exists);
     }
 

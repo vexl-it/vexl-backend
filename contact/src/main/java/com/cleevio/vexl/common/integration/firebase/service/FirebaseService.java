@@ -48,6 +48,7 @@ public class FirebaseService implements NotificationService, DeeplinkService {
     private static final String NEW_CONTENT_NOTIFICATION_TYPE = "NEW_CONTENT";
 
     private static final String CREATE_OFFER_PROMPT = "CREATE_OFFER_PROMPT";
+    private static final String LOGGING_ON_DIFFERENT_DEVICE = "LOGGING_ON_DIFFERENT_DEVICE";
 
     private static final String GENERAL_TOPIC = "general";
 
@@ -150,6 +151,36 @@ public class FirebaseService implements NotificationService, DeeplinkService {
         });
     }
 
+
+    public void sendLoggingOnDifferentDeviceNotification(final String firebaseToken) {
+        try {
+            var messageBuilder = Message.builder();
+
+            final ApnsConfig apnsConfig = ApnsConfig.builder()
+                    .setAps(Aps.builder()
+                            .setContentAvailable(true)
+                            .build())
+                    .build();
+
+            messageBuilder.setApnsConfig(apnsConfig);
+
+            messageBuilder.setAndroidConfig(
+                    AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .build()
+            );
+
+            messageBuilder.setToken(firebaseToken);
+            messageBuilder.putData(TYPE, LOGGING_ON_DIFFERENT_DEVICE);
+
+            final String response = FirebaseMessaging.getInstance().send(messageBuilder.build());
+            log.info("Sent message sendLoggingOnDifferentDeviceNotification: " + response);
+        } catch (FirebaseMessagingException e) {
+            handleException(e, firebaseToken);
+        } catch (Exception e) {
+            log.error("Error sending notification in sendLoggingOnDifferentDeviceNotification: " + e.getMessage(), e);
+        }
+    }
     @Override
     public String createDynamicLink(final String code) {
         final String url = API_URL + properties.key();
