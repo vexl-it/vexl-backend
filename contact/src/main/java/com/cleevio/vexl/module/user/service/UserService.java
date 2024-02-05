@@ -13,6 +13,7 @@ import com.cleevio.vexl.module.user.dto.request.FirebaseTokenUpdateRequest;
 import com.cleevio.vexl.module.user.dto.request.RefreshUserRequest;
 import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.user.event.NewContentNotificationEvent;
+import com.cleevio.vexl.module.user.event.NotifyLoggingOnDifferentDeviceNotification;
 import com.cleevio.vexl.module.user.event.UserInactivityLimitExceededEvent;
 import com.cleevio.vexl.module.user.event.UserRemovedEvent;
 import com.cleevio.vexl.module.user.exception.UserNotFoundException;
@@ -52,7 +53,7 @@ public class UserService {
     }
 
     @Transactional
-    public Boolean checkUserExists(final String publicKey, final String hash) {
+    public Boolean checkUserExists(final String publicKey, final String hash, final boolean notifyExistingUserAboutLogin) {
         advisoryLockService.lock(
                 ModuleLockNamespace.USER,
                 UserAdvisoryLock.CREATE_USER.name(),
@@ -60,9 +61,19 @@ public class UserService {
         );
 
         final Optional<User> userByHash = this.userRepository.findByHash(hash);
+
+        if (userByHash.isPresent() && notifyExistingUserAboutLogin) {
+            final User user = userByHash.orElseThrow();
+            final String firebaseToken = user.getFirebaseToken();
+            if(firebaseToken != null)
+                applicationEventPublisher
+                    .publishEvent(
+                            new NotifyLoggingOnDifferentDeviceNotification(firebaseToken)
+                    );
+        }
+
         return userByHash.isPresent();
     }
-
 
     @Transactional
     public User createUser(final String publicKey, final String hash, @Valid CreateUserRequest request, final int clientVersion) {

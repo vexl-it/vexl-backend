@@ -13,4 +13,6 @@ public interface NotificationService {
     void sendInactivityReminderNotification(List<InactivityNotificationDto> firebaseTokens);
     void sendNewContentNotification(List<NewContentNotificationDto> firebaseTokens);
     void sendCreateOfferPromptToGeneralTopic();
+
+    void sendLoggingOnDifferentDeviceNotification(final String firebaseToken);
 }

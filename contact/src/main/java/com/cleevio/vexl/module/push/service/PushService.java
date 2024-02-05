@@ -80,4 +80,8 @@ public class PushService {
     public void sendNewContentNotification(List<NewContentNotificationDto> dtos) {
         notificationService.sendNewContentNotification(dtos);
     }
+
+    public void sendLoggingOnDifferentDeviceNotification(final String firebaseNotification) {
+        notificationService.sendLoggingOnDifferentDeviceNotification(firebaseNotification);
+    }
 }
