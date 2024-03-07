@@ -10,7 +10,6 @@ public record MessagesResponse(
         List<MessageResponse> messages
 
 ) {
-
     public record MessageResponse(
 
             @Schema(description = "For ordering purposes.")
@@ -23,7 +22,7 @@ public record MessagesResponse(
             String senderPublicKey,
 
             @Schema(description = "Type of message.")
-            MessageType messageType
+            String messageType
 
     ) {
     }

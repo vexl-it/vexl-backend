@@ -23,7 +23,7 @@ public record SendMessageToInboxQuery(
         String message,
 
         @NotNull
-        MessageType messageType,
+        String messageType,
 
         @Nullable
         String messagePreview

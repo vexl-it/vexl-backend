@@ -28,7 +28,7 @@ public record SendMessageRequest(
         @Schema(required = true, description = "Type of message you're sending. Options - MESSAGE, REQUEST_REVEAL, APPROVE_REVEAL, DELETE_CHAT. " +
                 "Types - REQUEST_MESSAGING, APPROVE_MESSAGING and DISAPPROVE_MESSAGING are not possible to send here. " +
                 "They will be automatically assigned to message sent via permission EPs.")
-        MessageType messageType,
+        String messageType,
 
         @Valid
         @NotNull

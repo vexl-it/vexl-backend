@@ -9,14 +9,14 @@ import javax.validation.ConstraintValidatorContext;
 
 import static com.cleevio.vexl.module.message.constant.MessageType.NOT_ALLOWED_MESSAGE_TYPES;
 
-public class AllowedMessageTypeValidator implements ConstraintValidator<CheckAllowedMessageType, MessageType> {
+public class AllowedMessageTypeValidator implements ConstraintValidator<CheckAllowedMessageType, String> {
 
     @Override
     public void initialize(CheckAllowedMessageType constraintAnnotation) {
     }
 
     @Override
-    public boolean isValid(@Nullable MessageType type, ConstraintValidatorContext constraintContext) {
+    public boolean isValid(@Nullable String type, ConstraintValidatorContext constraintContext) {
         return type != null && !NOT_ALLOWED_MESSAGE_TYPES.contains(type);
     }
 }

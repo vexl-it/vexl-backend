@@ -318,7 +318,7 @@ public class MessageService {
     }
 
     private Message createMessageEntity(String senderPublicKey, Inbox receiverInbox,
-                                        String message, MessageType messageType) {
+                                        String message, String messageType) {
         return Message.builder()
                 .message(message)
                 .inbox(receiverInbox)
