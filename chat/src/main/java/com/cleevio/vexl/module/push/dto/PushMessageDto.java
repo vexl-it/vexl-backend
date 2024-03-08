@@ -16,11 +16,6 @@ import org.springframework.lang.Nullable;
  * @param senderPublicKey
  */
 public record PushMessageDto (
-
-		@Nullable
-        String title,
-		@Nullable
-        String text,
         String token,
         Platform platform,
 		int clientVersion,

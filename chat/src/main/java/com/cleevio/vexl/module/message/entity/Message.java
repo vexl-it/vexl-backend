@@ -50,7 +50,6 @@ public class Message {
     private boolean pulled;
 
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private String type;
 
     @JoinColumn(name = "inbox_id", nullable = false)

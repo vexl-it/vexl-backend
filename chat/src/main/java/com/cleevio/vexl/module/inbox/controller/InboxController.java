@@ -118,7 +118,7 @@ public class InboxController {
                                 request.publicKey(),
                                 receiverInbox,
                                 request.message(),
-                                MessageType.REQUEST_MESSAGING,
+                                MessageType.REQUEST_MESSAGING.toString(),
                                 null
                         )
 
@@ -146,7 +146,7 @@ public class InboxController {
                                 request.publicKey(),
                                 receiverInbox,
                                 request.message(),
-                                MessageType.CANCEL_REQUEST_MESSAGING,
+                                MessageType.CANCEL_REQUEST_MESSAGING.toString(),
                                 null
                         )
 
@@ -182,7 +182,7 @@ public class InboxController {
                                     request.publicKeyToConfirm(),
                                     requesterInbox,
                                     request.message(),
-                                    MessageType.DISAPPROVE_MESSAGING,
+                                    MessageType.DISAPPROVE_MESSAGING.toString(),
                                     null
                             )
                     )
@@ -196,7 +196,7 @@ public class InboxController {
                                     request.publicKeyToConfirm(),
                                     requesterInbox,
                                     request.message(),
-                                    MessageType.APPROVE_MESSAGING,
+                                    MessageType.APPROVE_MESSAGING.toString(),
                                     null
                             )
                     )
