@@ -68,7 +68,7 @@ public class MessageService {
 
         if(clientVersion < ClientVersion.MIN_CLIENT_VERSION_THAT_UNDERSTANDS_CANCELING) {
             messages = messages.stream()
-                    .filter(m -> m.getType() != MessageType.CANCEL_REQUEST_MESSAGING)
+                    .filter(m -> !m.getType().equals(MessageType.CANCEL_REQUEST_MESSAGING.toString()))
                     .toList();
         }
 
@@ -190,7 +190,7 @@ public class MessageService {
                 leaveChatRequest.receiverPublicKey(),
                 receiverInbox,
                 leaveChatRequest.message(),
-                MessageType.DELETE_CHAT,
+                MessageType.DELETE_CHAT.toString(),
                 null
         ), true);
 

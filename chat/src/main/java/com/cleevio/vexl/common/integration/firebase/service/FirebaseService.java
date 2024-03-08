@@ -30,19 +30,8 @@ public class FirebaseService implements NotificationService {
             return;
         }
 
-        final boolean sendSystemNotification = dto.clientVersion() < ClientVersion.DO_NOT_SENT_SYSTEM_NOTIFICATION_FROM_THIS_VERSION_ON && dto.title() != null && dto.text() != null;
         try {
             var messageBuilder = Message.builder();
-
-
-            if(sendSystemNotification) {
-                if (Platform.IOS.equals(dto.platform())) {
-                    messageBuilder.setNotification(Notification.builder().setTitle(dto.title()).setBody(dto.text()).build());
-                }
-
-                messageBuilder.putData(TITLE, dto.title());
-                messageBuilder.putData(BODY, dto.text());
-            }
 
             if (Platform.ANDROID.equals(dto.platform())) {
                 messageBuilder.setAndroidConfig(
@@ -60,7 +49,7 @@ public class FirebaseService implements NotificationService {
             messageBuilder.setApnsConfig(apnsConfig);
 
             messageBuilder.setToken(dto.token());
-            messageBuilder.putData(TYPE, dto.messageType().name());
+            messageBuilder.putData(TYPE, dto.messageType());
             messageBuilder.putData(INBOX, dto.receiverPublicKey());
             messageBuilder.putData(SENDER, dto.senderPublicKey());
             if(dto.messagePreview() != null)
