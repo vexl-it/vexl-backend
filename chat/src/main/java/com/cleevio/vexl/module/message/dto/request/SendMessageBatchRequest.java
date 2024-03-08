@@ -57,7 +57,7 @@ public record SendMessageBatchRequest(
 
                 @NotNull
                 @Schema(required = true)
-                MessageType messageType,
+                String messageType,
 
                 @Nullable
                 @Schema(description = "Message preview for push notification")

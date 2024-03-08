@@ -24,7 +24,7 @@ public record PushMessageDto (
         String token,
         Platform platform,
 		int clientVersion,
-		MessageType messageType,
+		String messageType,
         String receiverPublicKey,
         String senderPublicKey,
 		@Nullable

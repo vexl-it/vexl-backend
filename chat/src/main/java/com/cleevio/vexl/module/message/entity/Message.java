@@ -51,7 +51,7 @@ public class Message {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private MessageType type;
+    private String type;
 
     @JoinColumn(name = "inbox_id", nullable = false)
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

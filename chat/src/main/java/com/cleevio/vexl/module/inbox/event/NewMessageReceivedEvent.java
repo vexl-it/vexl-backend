@@ -18,7 +18,7 @@ public record NewMessageReceivedEvent(
         Platform platform,
 
         @NotNull
-        MessageType messageType,
+        String messageType,
 
         @NotBlank
         String receiverPublicKey,
