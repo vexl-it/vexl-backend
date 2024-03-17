@@ -11,6 +11,16 @@ on:
         - prod
         - stage
         - dev
+      backend:
+        description: 'What backends to deploy'
+        required: true
+        type: choice
+        options:
+         - all
+         - chat
+         - contact
+         - offer2
+         - user
 
 jobs:
   update-manifests:
@@ -27,4 +37,4 @@ jobs:
             -H "Authorization: Bearer ${INFRASTRUCTURE_REPOSITORY_TOKEN}"\
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/vexl-it/${INFRASTRUCTURE_REPOSITORY}/dispatches \
-            -d '{"event_type":"${{inputs.env}}_deployment","client_payload":{"backend_image_sha":"${{github.sha}}"}}'
+            -d '{"event_type":"${{inputs.env}}_deployment","client_payload":{"backend_image_sha":"${{github.sha}}", "backend":"${{inputs.backend}}"}}'
