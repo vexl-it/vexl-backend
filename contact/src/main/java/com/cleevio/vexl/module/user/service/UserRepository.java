@@ -34,7 +34,7 @@ interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExec
 
     @Query(value = """
             select u from User u
-            where u.refreshedAt is not null and u.refreshedAt < :notifyBeforeDate
+            where (u.refreshedAt is null or u.refreshedAt < :notifyBeforeDate)
             and (u.lastNewContentNotificationSentAt is null or u.lastNewContentNotificationSentAt < :notifyBeforeDate)
             and u.platform is not null and u.firebaseToken is not null
             """)
