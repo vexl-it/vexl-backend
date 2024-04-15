@@ -375,7 +375,7 @@ public class OfferService {
                 .stream()
                 .map(String::trim)
                 .toList();
-
+//
         if (!areAdminIdsInCorrectFormat(adminIds)) {
             throw new IncorrectAdminIdFormatException();
         }
@@ -516,9 +516,21 @@ public class OfferService {
         this.offerPrivateRepository.save(offerPrivatePart);
     }
 
+    private boolean isValidUuid(String uuidString) {
+        try {
+            UUID.fromString(uuidString);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private boolean isOldVersionAdminId(String string) {
+         return string.length() == SIXTY_FOUR;
+    }
     private boolean areAdminIdsInCorrectFormat(List<String> adminIds) {
         return adminIds
                 .stream()
-                .noneMatch(it -> it.length() != SIXTY_FOUR);
+                .noneMatch(it -> !isValidUuid(it) && !isOldVersionAdminId(it));
     }
 }
