@@ -135,8 +135,10 @@ public class OfferService {
                 publicKey
         );
 
+        final String adminIdToUse = request.adminId() == null ? generateKeyValue() : request.adminId();
+
         final OfferPublicPart offerPublicPart = OfferPublicPart.builder()
-                .adminId(generateKeyValue())
+                .adminId(adminIdToUse)
                 .offerId(generateKeyValue())
                 .offerType(request.offerType() == null ? null : OfferType.valueOf(request.offerType().toUpperCase()))
                 .refreshedAt(LocalDate.now())
