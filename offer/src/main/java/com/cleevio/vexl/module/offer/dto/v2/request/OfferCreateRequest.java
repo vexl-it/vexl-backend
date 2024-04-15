@@ -8,6 +8,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.UUID;
 
 public record OfferCreateRequest(
 
@@ -23,6 +24,8 @@ public record OfferCreateRequest(
         List<@NotNull OfferPrivateCreate> offerPrivateList,
 
         @Nullable
-        Integer countryPrefix
+        Integer countryPrefix,
+
+        @Nullable String adminId
 ) {
 }
