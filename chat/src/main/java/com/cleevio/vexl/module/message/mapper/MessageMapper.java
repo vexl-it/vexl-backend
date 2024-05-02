@@ -10,18 +10,19 @@ import java.util.stream.Collectors;
 @Component
 public class MessageMapper {
 
-    public MessagesResponse.MessageResponse mapSingle(Message message) {
+    public MessagesResponse.MessageResponse mapSingle(Message message, boolean notificationHandled) {
         return new MessagesResponse.MessageResponse(
                 message.getId(),
                 message.getMessage(),
                 message.getSenderPublicKey(),
-                message.getType()
+                message.getType(),
+                notificationHandled
         );
     }
 
-    public List<MessagesResponse.MessageResponse> mapList(List<Message> messages) {
+    public List<MessagesResponse.MessageResponse> mapList(List<Message> messages, boolean notificationHandled) {
         return messages.stream()
-                .map(this::mapSingle)
+                .map(a -> this.mapSingle(a, notificationHandled))
                 .collect(Collectors.toList());
     }
 }

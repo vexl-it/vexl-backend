@@ -22,8 +22,10 @@ public record MessagesResponse(
             String senderPublicKey,
 
             @Schema(description = "Type of message.")
-            String messageType
+            String messageType,
 
+            @Schema(description = "weather the notification was handled by this service. If false, call notification service.")
+            Boolean notificationHandled
     ) {
     }
 }

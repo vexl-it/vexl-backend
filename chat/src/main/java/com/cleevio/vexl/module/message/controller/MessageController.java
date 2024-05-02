@@ -76,7 +76,8 @@ public class MessageController {
             """)
     MessagesResponse retrieveMessages(@Valid @RequestBody MessageRequest request,
                                       @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
-                                      @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") final String clientVersionRaw) {
+                                      @RequestHeader(name = ClientVersion.CLIENT_VERSION_HEADER, defaultValue = "0") final String clientVersionRaw
+                                      ) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
         final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
 
@@ -84,7 +85,7 @@ public class MessageController {
 
         Inbox inbox = this.inboxService.findInbox(request.publicKey());
         List<Message> messages = this.messageService.retrieveMessages(inbox, clientVersion);
-        return new MessagesResponse(messageMapper.mapList(messages));
+        return new MessagesResponse(messageMapper.mapList(messages, false));
     }
 
     @PostMapping
@@ -96,12 +97,14 @@ public class MessageController {
     @Operation(summary = "Send a message to the inbox.",
             description = "When user wants to contact someone, use this EP.")
     MessagesResponse.MessageResponse sendMessage(@Valid @RequestBody SendMessageRequest request,
-                                                 @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                                                 @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                                                 @RequestParam(value = "notificationServiceReady", required = false, defaultValue = "false") boolean notificationServiceReady
+                                                 ) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
         challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.senderPublicKey(), request.signedChallenge()), cryptoVersion);
 
         Inbox receiverInbox = this.inboxService.findInbox(request.receiverPublicKey());
-        return messageMapper.mapSingle(
+        return (
                 this.messageService.sendMessageToInbox(
                         new SendMessageToInboxQuery(
                                 request.senderPublicKey(),
@@ -110,7 +113,8 @@ public class MessageController {
                                 request.message(),
                                 request.messageType(),
                                 request.messagePreview()
-                        )
+                        ),
+                        notificationServiceReady
                 )
         );
     }
@@ -128,8 +132,10 @@ public class MessageController {
                     EP returns only successfully sent messages in response.
                     """)
     List<MessagesResponse.MessageResponse> sendMessagesInBatch(@RequestBody SendMessageBatchRequest request,
-                                                               @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                                                               @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                                                               @RequestParam(value = "notificationServiceReady", required = false, defaultValue = "false") boolean notificationServiceReady
+                                                               ) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
-        return messageMapper.mapList(this.messageService.sendMessagesBatch(request, cryptoVersion));
+        return messageMapper.mapList(this.messageService.sendMessagesBatch(request, cryptoVersion), notificationServiceReady);
     }
 }

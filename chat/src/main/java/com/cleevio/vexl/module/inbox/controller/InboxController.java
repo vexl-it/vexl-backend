@@ -108,10 +108,15 @@ public class InboxController {
     })
     @Operation(summary = "Requesting of an approval to send a message.",
             description = "First of all you have to get to user's whitelist, if you want to send a message someone.")
-    MessagesResponse.MessageResponse sendRequestToPermission(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKeySender, @Valid @RequestBody ApprovalRequest request) {
+    MessagesResponse.MessageResponse sendRequestToPermission(
+            @RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY)
+            String publicKeySender,
+            @Valid @RequestBody ApprovalRequest request,
+            @RequestParam(value = "notificationServiceReady", required = false, defaultValue = "false") boolean notificationServiceReady
+    ) {
         this.inboxService.ensureInboxExists(publicKeySender, InboxOfSenderNotFoundException.class);
         Inbox receiverInbox = this.inboxService.findInbox(request.publicKey());
-        return messageMapper.mapSingle(
+        return (
                 this.messageService.sendRequestToPermission(
                         new SendMessageToInboxQuery(
                                 publicKeySender,
@@ -120,7 +125,8 @@ public class InboxController {
                                 request.message(),
                                 MessageType.REQUEST_MESSAGING.toString(),
                                 null
-                        )
+                        ),
+                        notificationServiceReady
 
                 )
         );
@@ -137,9 +143,11 @@ public class InboxController {
     @Operation(summary = "Cancel approval",
             description = "Cancel approval to send messages to user.")
     MessagesResponse.MessageResponse sendCancelApproval(@RequestHeader(name = SecurityFilter.HEADER_PUBLIC_KEY) String publicKeySender,
-                                                             @Valid @RequestBody ApprovalRequest request) {
+                                                             @Valid @RequestBody ApprovalRequest request,
+                                                        @RequestParam(value = "notificationServiceReady", required = false, defaultValue = "false") boolean notificationServiceReady
+                                                        ) {
         Inbox receiverInbox = this.inboxService.findInbox(request.publicKey());
-        return messageMapper.mapSingle(
+        return(
                 this.messageService.sendCancelRequestToPermission(
                         new SendMessageToInboxQuery(
                                 publicKeySender,
@@ -148,7 +156,8 @@ public class InboxController {
                                 request.message(),
                                 MessageType.CANCEL_REQUEST_MESSAGING.toString(),
                                 null
-                        )
+                        ),
+                        notificationServiceReady
 
                 )
         );
@@ -167,7 +176,9 @@ public class InboxController {
     @ApiResponse(responseCode = "404 (100104)", description = "Request was not found.", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 
     MessagesResponse.MessageResponse confirmPermission(@Valid @RequestBody ApprovalConfirmRequest request,
-                                                       @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                                                       @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                                                       @RequestParam(value = "notificationServiceReady", required = false, defaultValue = "false") boolean notificationServiceReady
+                                                       ) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
         challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.publicKey(), request.signedChallenge()), cryptoVersion);
 
@@ -175,7 +186,7 @@ public class InboxController {
         Inbox inbox = this.inboxService.findInbox(request.publicKey());
         if (!request.approve()) {
             this.whitelistService.deletePendingFromWhiteList(inbox, request.publicKeyToConfirm());
-            return messageMapper.mapSingle(
+            return (
                     this.messageService.sendDisapprovalMessage(
                             new SendMessageToInboxQuery(
                                     request.publicKey(),
@@ -184,12 +195,13 @@ public class InboxController {
                                     request.message(),
                                     MessageType.DISAPPROVE_MESSAGING.toString(),
                                     null
-                            )
+                            ),
+                            notificationServiceReady
                     )
             );
         } else {
             this.whitelistService.connectRequesterAndReceiver(inbox, requesterInbox, request.publicKey(), request.publicKeyToConfirm());
-            return messageMapper.mapSingle(
+            return (
                     this.messageService.sendMessageToInbox(
                             new SendMessageToInboxQuery(
                                     request.publicKey(),
@@ -198,7 +210,8 @@ public class InboxController {
                                     request.message(),
                                     MessageType.APPROVE_MESSAGING.toString(),
                                     null
-                            )
+                            ),
+                            notificationServiceReady
                     )
             );
         }
@@ -215,11 +228,13 @@ public class InboxController {
     @Operation(summary = "Leave chat and remove any traces of relationship between you and the other side",
             description = "After calling this. New request will need to be sent in case of wanting to chat again.")
     MessagesResponse.MessageResponse leaveChat(@Valid @RequestBody LeaveChatRequest request,
-                      @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw) {
+                      @RequestHeader(name = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "1") final String cryptoVersionRaw,
+                                               @RequestParam(value = "notificationServiceReady", required = false, defaultValue = "false") boolean notificationServiceReady
+                                               ) {
         final int cryptoVersion = NumberUtils.parseIntOrFallback(cryptoVersionRaw, 1);
         challengeService.verifySignedChallenge(new VerifySignedChallengeQuery(request.senderPublicKey(), request.signedChallenge()), cryptoVersion);
 
-        return messageMapper.mapSingle(messageService.sendLeaveChat(request));
+        return (messageService.sendLeaveChat(request, notificationServiceReady));
     }
     @DeleteMapping("/messages")
     @SecurityRequirements({
