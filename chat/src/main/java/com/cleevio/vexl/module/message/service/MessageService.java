@@ -11,28 +11,28 @@ import com.cleevio.vexl.module.message.constant.MessageAdvisoryLock;
 import com.cleevio.vexl.module.message.dto.request.SendMessageBatchRequest;
 import com.cleevio.vexl.module.inbox.entity.Inbox;
 import com.cleevio.vexl.module.inbox.service.WhitelistService;
+import com.cleevio.vexl.module.message.dto.response.MessagesResponse;
 import com.cleevio.vexl.module.message.entity.Message;
 import com.cleevio.vexl.module.message.constant.MessageType;
 import com.cleevio.vexl.module.inbox.constant.WhitelistState;
 import com.cleevio.vexl.module.inbox.event.NewMessageReceivedEvent;
 import com.cleevio.vexl.module.inbox.exception.RequestMessagingNotAllowedException;
 import com.cleevio.vexl.module.inbox.exception.WhiteListException;
+import com.cleevio.vexl.module.message.mapper.MessageMapper;
 import com.cleevio.vexl.module.message.service.query.SendMessageToInboxQuery;
 import com.cleevio.vexl.module.stats.constant.StatsKey;
 import com.cleevio.vexl.module.stats.dto.StatsDto;
 import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.cleevio.vexl.module.stats.constant.StatsKey.MESSAGES_ABSOLUTE_SUM;
 import static com.cleevio.vexl.module.stats.constant.StatsKey.MESSAGES_NOT_PULLED_SUM;
@@ -47,6 +47,11 @@ public class MessageService {
     private final ChallengeService challengeService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final AdvisoryLockService advisoryLockService;
+    private final MessageMapper messageMapper;
+
+    @Value("${settings.rate_of_notifications_for_notification_service:0.1}")
+    private final double rateOfNotificationsForNotificationService;
+    private static Random random = new Random();
 
     @Transactional
     public List<Message> retrieveMessages(Inbox inbox, int clientVersion) {
@@ -114,7 +119,7 @@ public class MessageService {
     }
 
     @Transactional
-    public Message sendMessageToInbox(@Valid SendMessageToInboxQuery query) {
+    public MessagesResponse.MessageResponse sendMessageToInbox(@Valid SendMessageToInboxQuery query, boolean notificationServiceReady) {
         advisoryLockService.lock(
                 ModuleLockNamespace.MESSAGE,
                 MessageAdvisoryLock.SEND_MESSAGE.name(),
@@ -126,11 +131,11 @@ public class MessageService {
             throw new WhiteListException();
         }
 
-        return this.saveMessageToInboxAndSendNotification(query, true);
+        return this.saveMessageToInboxAndSendNotification(query, true, notificationServiceReady);
     }
 
     @Transactional
-    public Message sendRequestToPermission(@Valid SendMessageToInboxQuery query) {
+    public MessagesResponse.MessageResponse sendRequestToPermission(@Valid SendMessageToInboxQuery query, boolean notificationServiceReady) {
         advisoryLockService.lock(
                 ModuleLockNamespace.MESSAGE,
                 MessageAdvisoryLock.SEND_MESSAGE.name(),
@@ -146,10 +151,10 @@ public class MessageService {
 
         this.whitelistService.upsertSenderEntity(query.receiverInbox(), query.senderPublicKey(), WhitelistState.WAITING, LocalDate.now());
 
-        return this.saveMessageToInboxAndSendNotification(query, true);
+        return this.saveMessageToInboxAndSendNotification(query, true, notificationServiceReady);
     }
     @Transactional
-    public Message sendCancelRequestToPermission(@Valid SendMessageToInboxQuery query) {
+    public MessagesResponse.MessageResponse sendCancelRequestToPermission(@Valid SendMessageToInboxQuery query, boolean notificationServiceReady) {
         advisoryLockService.lock(
                 ModuleLockNamespace.MESSAGE,
                 MessageAdvisoryLock.SEND_MESSAGE.name(),
@@ -158,12 +163,12 @@ public class MessageService {
 
         this.whitelistService.cancelSenderRequest(query.senderPublicKey(), query.receiverInbox());
 
-        return this.saveMessageToInboxAndSendNotification(query, true);
+        return this.saveMessageToInboxAndSendNotification(query, true, notificationServiceReady);
     }
 
 
     @Transactional
-    public Message sendLeaveChat(@Valid LeaveChatRequest leaveChatRequest) {
+    public MessagesResponse.MessageResponse sendLeaveChat(@Valid LeaveChatRequest leaveChatRequest, boolean notificationServiceReady) {
         advisoryLockService.lock(
                 ModuleLockNamespace.MESSAGE,
                 MessageAdvisoryLock.SEND_MESSAGE.name(),
@@ -192,19 +197,19 @@ public class MessageService {
                 leaveChatRequest.message(),
                 MessageType.DELETE_CHAT.toString(),
                 null
-        ), true);
+        ), true, notificationServiceReady);
 
     }
 
     @Transactional
-    public Message sendDisapprovalMessage(@Valid SendMessageToInboxQuery query) {
+    public MessagesResponse.MessageResponse sendDisapprovalMessage(@Valid SendMessageToInboxQuery query, boolean notificationServiceReady) {
         advisoryLockService.lock(
                 ModuleLockNamespace.MESSAGE,
                 MessageAdvisoryLock.SEND_MESSAGE.name(),
                 query.receiverPublicKey(), query.senderPublicKey()
         );
 
-        return this.saveMessageToInboxAndSendNotification(query, true);
+        return this.saveMessageToInboxAndSendNotification(query, true, notificationServiceReady);
     }
 
     @Transactional
@@ -272,12 +277,17 @@ public class MessageService {
         );
     }
 
-    private Message saveMessageToInboxAndSendNotification(SendMessageToInboxQuery query, boolean sendNotification) {
+    private MessagesResponse.MessageResponse saveMessageToInboxAndSendNotification(SendMessageToInboxQuery query, boolean sendNotification, boolean notificationServiceReady) {
 
         final Message messageEntity = createMessageEntity(query.senderPublicKey(), query.receiverInbox(), query.message(), query.messageType());
         final Message savedMessage = this.messageRepository.save(messageEntity);
 
         if (sendNotification && query.receiverInbox().getToken() != null) {
+            if(notificationServiceReady && random.nextDouble() <  rateOfNotificationsForNotificationService) {
+                return messageMapper.mapSingle(savedMessage, false);
+            }
+
+
             this.applicationEventPublisher.publishEvent(
                     new NewMessageReceivedEvent(
                             query.receiverInbox().getToken(),
@@ -290,7 +300,7 @@ public class MessageService {
                     ));
         }
 
-        return savedMessage;
+        return messageMapper.mapSingle(savedMessage, true);
     }
 
     private List<Message> saveBatchMessagesToInboxAndSendNotifications(List<SendMessageToInboxQuery> queryList) {
