@@ -282,12 +282,13 @@ public class MessageService {
         final Message messageEntity = createMessageEntity(query.senderPublicKey(), query.receiverInbox(), query.message(), query.messageType());
         final Message savedMessage = this.messageRepository.save(messageEntity);
 
+        final double roll = random.nextDouble();
+        log.info("Sending notification: ready: {}, random: {}, rate: {}", notificationServiceReady, roll, rateOfNotificationsForNotificationService);
+        if(notificationServiceReady && roll <  rateOfNotificationsForNotificationService) {
+            return messageMapper.mapSingle(savedMessage, false);
+        }
+
         if (sendNotification && query.receiverInbox().getToken() != null) {
-            if(notificationServiceReady && random.nextDouble() <  rateOfNotificationsForNotificationService) {
-                return messageMapper.mapSingle(savedMessage, false);
-            }
-
-
             this.applicationEventPublisher.publishEvent(
                     new NewMessageReceivedEvent(
                             query.receiverInbox().getToken(),
