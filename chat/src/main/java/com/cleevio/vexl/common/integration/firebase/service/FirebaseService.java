@@ -8,6 +8,7 @@ import com.google.firebase.messaging.*;
 import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,9 @@ public class FirebaseService implements NotificationService {
     private static final String INBOX = "inbox";
     private static final String SENDER = "sender";
     private static final String PREVIEW = "preview";
+
+    @Value("${settings.ios_app_bundle_id}")
+    private final String iosAppBundleId;
 
     public void sendPushNotification(final PushMessageDto dto) {
         if (Platform.CLI.equals(dto.platform())) {
@@ -44,7 +48,12 @@ public class FirebaseService implements NotificationService {
             final ApnsConfig apnsConfig = ApnsConfig.builder()
                     .setAps(Aps.builder()
                             .setContentAvailable(true)
+
                             .build())
+                    .putHeader("apns-priority", "10")
+                    .putHeader("apns-push-type", "alert")
+                    .putHeader("apns-topic", iosAppBundleId)
+
                     .build();
             messageBuilder.setApnsConfig(apnsConfig);
 
