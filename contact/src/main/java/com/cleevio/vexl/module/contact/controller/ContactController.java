@@ -14,6 +14,7 @@ import com.cleevio.vexl.module.contact.dto.response.UserContactResponse;
 import com.cleevio.vexl.module.contact.dto.response.ImportResponse;
 import com.cleevio.vexl.module.contact.constant.ConnectionLevel;
 import com.cleevio.vexl.module.contact.service.ContactService;
+import com.cleevio.vexl.module.contact.service.DashboardNotificationService;
 import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.contact.service.ImportService;
 import io.micrometer.core.instrument.Gauge;
@@ -54,11 +55,13 @@ public class ContactController {
 
     private final ImportService importService;
     private final ContactService contactService;
+    private final DashboardNotificationService dashboardNotificationService;
 
     @Autowired
-    public ContactController(ImportService importService, ContactService contactService, MeterRegistry registry) {
+    public ContactController(ImportService importService, ContactService contactService, MeterRegistry registry, DashboardNotificationService dashboardNotificationService) {
         this.importService = importService;
         this.contactService = contactService;
+        this.dashboardNotificationService = dashboardNotificationService;
 
         Gauge.builder("analytics.contacts.count_unique_users", contactService, ContactService::retrieveCountOfUniqueUsers)
                 .description("Number of unique users")
@@ -102,7 +105,9 @@ public class ContactController {
             description = "Contacts have to be sent encrypted with HMAC-SHA256."
     )
     ImportResponse replaceContacts(@AuthenticationPrincipal User user, @RequestBody ImportRequest importRequest) {
-        return this.importService.importContacts(user, importRequest, true);
+        ImportResponse result = this.importService.importContacts(user, importRequest, true);
+        dashboardNotificationService.sendNoticeOnContactsImported();
+        return result;
     }
 
     @GetMapping("/me")
