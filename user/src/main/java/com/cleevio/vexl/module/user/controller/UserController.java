@@ -11,6 +11,7 @@ import com.cleevio.vexl.module.user.dto.response.PhoneConfirmResponse;
 import com.cleevio.vexl.module.user.dto.response.ConfirmCodeResponse;
 import com.cleevio.vexl.module.user.dto.response.SignatureResponse;
 import com.cleevio.vexl.module.user.entity.User;
+import com.cleevio.vexl.module.user.service.DashboardNotificationService;
 import com.cleevio.vexl.module.user.service.SignatureService;
 import com.cleevio.vexl.module.user.service.UserService;
 import com.cleevio.vexl.module.user.service.UserVerificationService;
@@ -38,12 +39,14 @@ public class UserController {
     private final UserService userService;
     private final UserVerificationService userVerificationService;
     private final SignatureService signatureService;
+    private final DashboardNotificationService dashboardNotificationService;
 
     @Autowired
-    public UserController(UserService userService, UserVerificationService userVerificationService, SignatureService signatureService, MeterRegistry meterRegistry) {
+    public UserController(UserService userService, UserVerificationService userVerificationService, SignatureService signatureService, MeterRegistry meterRegistry, DashboardNotificationService dashboardNotificationService) {
         this.userService = userService;
         this.userVerificationService = userVerificationService;
         this.signatureService = signatureService;
+        this.dashboardNotificationService = dashboardNotificationService;
 
         Gauge.builder("analytics.users.count", userService, UserService::getUsersCount)
                 .description("Number of users")
@@ -88,6 +91,8 @@ public class UserController {
                                                           @RequestHeader(value = SecurityFilter.HEADER_CRYPTO_VERSION, defaultValue = "") final String clientVersionRaw) {
         final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 1);
         final UserData userData = this.userService.findValidUserWithChallenge(challengeRequest);
+
+        this.dashboardNotificationService.sendNoticeOnNewUserCreated();
 
         return new SignatureResponse(this.signatureService.createSignature(userData, clientVersion));
     }

@@ -159,7 +159,7 @@ public class ContactService {
     /**
      * Send a notification to all existing contacts, so they can encrypt their Offers for a new user.
      */
-    @Async
+    @Async("sendNotificationToContactsExecutor")
     @Transactional(readOnly = true)
     public void sendNotificationToContacts(final Set<String> importedHashes, final User user) {
         if (importedHashes.isEmpty()) {
