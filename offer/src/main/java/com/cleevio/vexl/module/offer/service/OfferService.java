@@ -112,7 +112,7 @@ public class OfferService {
                 .description("How many offers was deleted (private parts - for each contact)")
                 .register(registry);
         this.offerModifiedCounter = Counter
-                .builder("analytics.offers.deletion.private_part")
+                .builder("analytics.offers.update")
                 .description("How many offers was modified.")
                 .register(registry);
         this.offerReportedRecordRepository = offerReportedRecordRepository;
@@ -268,6 +268,7 @@ public class OfferService {
         }
 
         publicPart.setModifiedAt(LocalDate.now());
+        this.offerModifiedCounter.increment();
 
         final OfferPublicPart updatedPublicPart = this.offerPublicRepository.save(publicPart);
         log.info("Offer [{}] has been successfully updated.", updatedPublicPart.getOfferId());

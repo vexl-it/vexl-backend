@@ -47,7 +47,6 @@ public class OfferControllerV2 {
 
     private final OfferService offerService;
 
-    private final Counter offerUpdateCounter;
     @Autowired
     public OfferControllerV2(MeterRegistry registry, OfferService offerService) {
         this.offerService = offerService;
@@ -62,10 +61,6 @@ public class OfferControllerV2 {
 
         Gauge.builder("analytics.offers.buy.count_active", () -> offerService.retrieveActiveOffersCount(OfferType.BUY))
                 .description("Number of offers")
-                .register(registry);
-
-        offerUpdateCounter = Counter.builder("analytics.offers.update")
-                .description("Number of updates made to offers")
                 .register(registry);
     }
 
@@ -100,7 +95,6 @@ public class OfferControllerV2 {
     OfferUnifiedResponse updateOffer(@RequestBody UpdateOfferRequest request,
                                      @RequestHeader(SecurityFilter.HEADER_PUBLIC_KEY) String publicKey) {
         OfferUnifiedResponse response = new OfferUnifiedResponse(this.offerService.updateOffer(request, publicKey));
-        offerUpdateCounter.increment();
 
         return response;
     }
