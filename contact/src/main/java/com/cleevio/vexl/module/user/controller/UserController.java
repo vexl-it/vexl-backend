@@ -9,6 +9,8 @@ import com.cleevio.vexl.module.user.dto.request.RefreshUserRequest;
 import com.cleevio.vexl.module.user.entity.User;
 import com.cleevio.vexl.module.user.response.UserExistsResponse;
 import com.cleevio.vexl.module.user.service.UserService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.vexl.common.constants.ClientVersion;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +34,17 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    private final Counter userRefreshCounter;
+
+    @Autowired
+    public UserController(UserService userService, MeterRegistry registry) {
+        this.userService = userService;
+        this.userRefreshCounter =  Counter
+                .builder("analytics.contacts.user_refresh")
+                .description("Increments when user calls /refresh endpoint")
+                .register(registry);
+    }
 
     @PostMapping
     @SecurityRequirements({
@@ -112,6 +126,9 @@ public class UserController {
                  @RequestBody RefreshUserRequest request) {
 
         final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 0);
+
+        this.userRefreshCounter.increment();
+
         this.userService.refreshUser(publicKey, ClientVersion.getHashWithPrefixBasedOnClientVersion(hash, clientVersionRaw), platform, request, clientVersion);
     }
 
