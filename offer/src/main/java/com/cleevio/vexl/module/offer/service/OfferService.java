@@ -61,6 +61,7 @@ public class OfferService {
     private final Counter offerPrivatePartExpiredCounter;
     private final Counter offerPublicPartDeletedCounter;
     private final Counter offerPrivatePartDeletedCounter;
+    private final MeterRegistry meterRegistry;
 
     @Value("${offer.expiration}")
     private final Integer expirationPeriod;
@@ -92,6 +93,7 @@ public class OfferService {
         this.applicationEventPublisher = applicationEventPublisher;
         this.reportFilter = (reportFilter == -1) ? Integer.MAX_VALUE : reportFilter;
 
+        this.meterRegistry = registry;
         this.offerPublicPartExpiredCounter = Counter
                 .builder("analytics.offers.expiration.public_part")
                 .description("How many offers expired (public parts - for each owner)")
@@ -117,6 +119,19 @@ public class OfferService {
         }
     }
 
+    private void reportOfferCreated(@Nullable final Integer countryPrefix) {
+        String countryPrefixString = countryPrefix == null ? "unknown" : countryPrefix.toString();
+
+
+        final Counter counter = Counter.builder("analytics.offers.created")
+                .description("How many offers were created")
+                .tag("countryPrefix", countryPrefixString)
+                .register(meterRegistry);
+        counter.increment();
+    }
+
+
+
     /**
      * Creating private and public part of an offer from request.
      */
@@ -127,6 +142,8 @@ public class OfferService {
                 OfferAdvisoryLock.CREATE.name(),
                 publicKey
         );
+
+        reportOfferCreated(request.countryPrefix());
 
         validatePrivateParts(
                 request.offerPrivateList().stream()
