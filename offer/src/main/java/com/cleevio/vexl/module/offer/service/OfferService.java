@@ -61,6 +61,7 @@ public class OfferService {
     private final Counter offerPrivatePartExpiredCounter;
     private final Counter offerPublicPartDeletedCounter;
     private final Counter offerPrivatePartDeletedCounter;
+    private final Counter offerModifiedCounter;
     private final MeterRegistry meterRegistry;
 
     @Value("${offer.expiration}")
@@ -110,6 +111,10 @@ public class OfferService {
                 .builder("analytics.offers.deletion.private_part")
                 .description("How many offers was deleted (private parts - for each contact)")
                 .register(registry);
+        this.offerModifiedCounter = Counter
+                .builder("analytics.offers.deletion.private_part")
+                .description("How many offers was modified.")
+                .register(registry);
         this.offerReportedRecordRepository = offerReportedRecordRepository;
 
         try {
@@ -122,10 +127,17 @@ public class OfferService {
     private void reportOfferCreated(@Nullable final Integer countryPrefix) {
         String countryPrefixString = countryPrefix == null ? "unknown" : countryPrefix.toString();
 
-
         final Counter counter = Counter.builder("analytics.offers.created")
                 .description("How many offers were created")
                 .tag("countryPrefix", countryPrefixString)
+                .register(meterRegistry);
+        counter.increment();
+    }
+
+    private void reportOfferReported(final String offerId) {
+        final Counter counter = Counter.builder("analytics.offers.reported")
+                .description("How many times was offer reported")
+                .tag("offerId", offerId)
                 .register(meterRegistry);
         counter.increment();
     }
@@ -359,6 +371,9 @@ public class OfferService {
         ) {
             throw new ReportLimitReachedException();
         }
+
+
+        reportOfferReported(request.offerId());
 
         this.offerPublicRepository.findByOfferId(request.offerId())
                 .ifPresentOrElse(
