@@ -63,11 +63,11 @@ public class ContactController {
         this.contactService = contactService;
         this.dashboardNotificationService = dashboardNotificationService;
 
-        Gauge.builder("analytics.contacts.count_unique_users", contactService, ContactService::retrieveCountOfUniqueUsers)
+        Gauge.builder("analytics.contacts.count_unique_users_2", contactService, ContactService::retrieveCountOfUniqueUsers)
                 .description("Number of unique users")
                 .register(registry);
 
-        Gauge.builder("analytics.contacts.count_unique_contacts", contactService, ContactService::retrieveCountOfUniqueContacts)
+        Gauge.builder("analytics.contacts.count_unique_contacts_2", contactService, ContactService::retrieveCountOfUniqueContacts)
                 .description("Number of unique contacts")
                 .register(registry);
 
