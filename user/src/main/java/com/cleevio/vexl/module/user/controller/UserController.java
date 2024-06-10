@@ -15,6 +15,7 @@ import com.cleevio.vexl.module.user.service.DashboardNotificationService;
 import com.cleevio.vexl.module.user.service.SignatureService;
 import com.cleevio.vexl.module.user.service.UserService;
 import com.cleevio.vexl.module.user.service.UserVerificationService;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +42,7 @@ public class UserController {
     private final UserVerificationService userVerificationService;
     private final SignatureService signatureService;
     private final DashboardNotificationService dashboardNotificationService;
+    private final MeterRegistry meterRegistry;
 
     @Autowired
     public UserController(UserService userService, UserVerificationService userVerificationService, SignatureService signatureService, MeterRegistry meterRegistry, DashboardNotificationService dashboardNotificationService) {
@@ -47,10 +50,23 @@ public class UserController {
         this.userVerificationService = userVerificationService;
         this.signatureService = signatureService;
         this.dashboardNotificationService = dashboardNotificationService;
+        this.meterRegistry = meterRegistry;
 
         Gauge.builder("analytics.users.count", userService, UserService::getUsersCount)
                 .description("Number of users")
                 .register(meterRegistry);
+    }
+
+    private void reportUserCreated(@Nullable Integer countryPrefix) {
+        this.dashboardNotificationService.sendNoticeOnNewUserCreated();
+        String countryPrefixString = countryPrefix == null ? "unknown" : countryPrefix.toString();
+
+        final Counter counter = Counter.builder("analytics.users.user_logged_in")
+                .description("How many offers were logged in")
+                .tag("countryPrefix", countryPrefixString)
+                .register(meterRegistry);
+        counter.increment();
+
     }
 
     @PostMapping("/confirmation/phone")
@@ -92,7 +108,7 @@ public class UserController {
         final int clientVersion = NumberUtils.parseIntOrFallback(clientVersionRaw, 1);
         final UserData userData = this.userService.findValidUserWithChallenge(challengeRequest);
 
-        this.dashboardNotificationService.sendNoticeOnNewUserCreated();
+        reportUserCreated(userData.countryPrefix());
 
         return new SignatureResponse(this.signatureService.createSignature(userData, clientVersion));
     }
