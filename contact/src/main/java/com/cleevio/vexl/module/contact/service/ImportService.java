@@ -32,6 +32,8 @@ public class ImportService {
     private static final String NO_CONTACTS_SENT = "You did not import any contact.";
     private static final String IMPORTED_CONTACTS_MESSAGE = "Imported %s / %s contacts.";
 
+    private static final String BTC_PRAGUE_2024_COASTER_CONTACT_HASH = "csiJ034lxvEZT6yN089Wia2sJRmUn3msRj7XK36SkXg=";
+
     public ImportResponse importContacts(final User user, final @Valid ImportRequest importRequest) {
         return importContacts(user, importRequest, false);
     }
@@ -48,6 +50,7 @@ public class ImportService {
             return new ImportResponse(true, NO_CONTACTS_SENT);
         }
 
+
         final int importSize = importRequest.contacts().size();
         log.info("Importing new {} contacts for {}",
                 importRequest.contacts().size(),
@@ -57,6 +60,7 @@ public class ImportService {
                 .stream()
                 .map(String::trim)
                 .filter(c -> !c.equals(user.getHash().replace("next:", "")))
+                .filter(c -> !c.equals(BTC_PRAGUE_2024_COASTER_CONTACT_HASH))
                 .collect(Collectors.toSet());
 
         final Set<String> existingContacts = this.contactRepository.retrieveExistingContacts(user.getHash());
