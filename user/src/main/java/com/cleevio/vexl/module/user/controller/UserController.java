@@ -62,7 +62,7 @@ public class UserController {
         String countryPrefixString = countryPrefix == null ? "unknown" : countryPrefix.toString();
 
         final Counter counter = Counter.builder("analytics.users.user_logged_in")
-                .description("How many offers were logged in")
+                .description("How many users logged in")
                 .tag("countryPrefix", countryPrefixString)
                 .register(meterRegistry);
         counter.increment();
